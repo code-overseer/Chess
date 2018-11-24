@@ -1,0 +1,188 @@
+#include "chesspiece.hpp"
+#include "chessboard.hpp"
+
+using namespace std;
+
+Chesspiece::~Chesspiece() {
+  return;
+}
+
+bool King::isvalid(char const* origin, char const* target, Chessboard* cb) {
+  int tgt = pos_to_int(target);
+  int org = pos_to_int(origin);
+  if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
+  
+  if (abs(tgt-org)==9||abs(tgt-org)==11||
+      abs(tgt-org)==1||abs(tgt-org)==10) {
+    if (!cb) {
+      return true;
+    } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+      return true;
+    } else if (cb->positions[tgt%10-1][tgt/10-1]->team!=team) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+bool Queen::isvalid(char const* origin, char const* target, Chessboard* cb) {
+  int tgt = pos_to_int(target);
+  int org = pos_to_int(origin);
+  int path=0;
+  int dir=0;
+  if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
+  
+  if (!(abs(tgt-org)%9)) {
+    dir=9;  // rank++ file-- or rank-- file++
+  } else if (!(abs(tgt-org)%11)) {
+    dir=11; // file++ rank++ pr file-- rank--
+  } else if (!(abs(tgt/10-org/10))) {
+    dir=1;  // rank++ or rank--
+  } else if (!(abs(tgt-org)%10)) {
+    dir=10; // file++ or file--
+  } else {
+    return false;
+  }
+  
+  if (!cb) {
+    return true;
+  }
+  
+  for (int i=1; i<=abs(tgt-org)/dir; i++) {
+    path = org + i*dir*(tgt-org<0?-1:1);
+    if (path==tgt) {
+      if (!cb->positions[path%10-1][path/10-1]) return true;
+      if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
+      break;
+    }
+    if (!!cb->positions[path%10-1][path/10-1]) break;
+  }
+  return false;
+}
+
+bool Bishop::isvalid(char const* origin, char const* target, Chessboard* cb) {
+  int tgt = pos_to_int(target);
+  int org = pos_to_int(origin);
+  int path=0;
+  int dir=0;
+  if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
+  
+  if (!(abs(tgt-org)%9)) {
+    dir=9;  // rank++ file-- or rank-- file++
+  } else if (!(abs(tgt-org)%11)) {
+    dir=11; // file++ rank++ pr file-- rank--
+  } else {
+    return false;
+  }
+  
+  if (!cb) {
+    return true;
+  }
+  
+  for (int i=1; i<=abs(tgt-org)/dir; i++) {
+    path = org + i*dir*(tgt-org<0?-1:1);
+    if (path==tgt) {
+      if (!cb->positions[path%10-1][path/10-1]) return true;
+      if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
+      break;
+    }
+    if (!!cb->positions[path%10-1][path/10-1]) break;
+  }
+  return false;
+}
+
+bool Knight::isvalid(char const* origin, char const* target, Chessboard* cb) {
+  int tgt = pos_to_int(target);
+  int org = pos_to_int(origin);
+  if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
+  
+  if (abs(tgt-org)==8||abs(tgt-org)==12||
+      abs(tgt-org)==19||abs(tgt-org)==21) {
+    if (!cb) {
+      return true;
+    } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+      return true;
+    } else if (cb->positions[tgt%10-1][tgt/10-1]->team!=team) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Rook::isvalid(char const* origin, char const* target, Chessboard* cb) {
+  int tgt = pos_to_int(target);
+  int org = pos_to_int(origin);
+  int path=0;
+  int dir=0;
+  if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
+  
+  if (!(abs(tgt/10-org/10))) {
+    dir=1;  // rank++ or rank--
+  } else if (!(abs(tgt-org)%10)) {
+    dir=10; // file++ or file--
+  } else {
+    return false;
+  }
+  
+  if (!cb) {
+    return true;
+  }
+  
+  for (int i=1; i<=abs(tgt-org)/dir; i++) {
+    path = org + i*dir*(tgt-org<0?-1:1);
+    if (path==tgt) {
+      if (!cb->positions[path%10-1][path/10-1]) return true;
+      if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
+      break;
+    }
+    if (!!cb->positions[path%10-1][path/10-1]) break;
+  }
+  return false;
+}
+
+bool Pawn::isvalid(char const* origin, char const* target, Chessboard* cb) {
+  int tgt = pos_to_int(target);
+  int org = pos_to_int(origin);
+  if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
+  
+  if (tgt-org==(team ? 2:-2)) {
+    if (!first_move_made) {
+      if (!cb) {
+        return true;
+      } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+        if (!cb->positions[(org+(team ? 1:-1))%10-1]
+            [(org+(team ? 1:-1))/10-1]) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  if (tgt-org==(team ? 1:-1)) {
+    if (!cb) {
+      return true;
+    } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+      return true;
+    }
+    return false;
+  }
+  
+  if ((tgt-org==(team ? 11:9))||
+      (tgt-org==(team ? -9:-11))) {
+    if (!cb) {
+      return true;
+    } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+      return false;
+    } else if (cb->positions[tgt%10-1][tgt/10-1]->team!=team) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::ostream& operator <<(std::ostream& o, Chesspiece& cp) {
+  return o << cp.symbol;
+}
+

@@ -1,0 +1,21 @@
+Piece 
+-where it is at
+-List of all possible positions (assuming empty board)
+
+Board
+-Prevent move when blocked
+
+Making move:
+- new positions (chessboard) point to piece
+- old positions (chessboard) point to nullptr
+- update piece current position
+
+Taking piece:
+- position of taken piece point to taking piece (set the piece pointer in positions array at the taken piece's position to point to the taking piece)
+
+- At the old position of the taking piece point to nullptr
+
+- Update taking piece's current position
+- Search taken piece's team piece vector to find taken piece (search by position)
+- Delete taken piece from heap
+- Erase taken piece pointer from vector
