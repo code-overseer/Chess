@@ -14,8 +14,13 @@ public:
   team(t), symbol(sym), name(n) { }
   virtual ~Chesspiece();
   
+  bool operator==(char const* name) const;
+  bool operator!=(char const* name) const;
+  
   friend std::ostream& operator <<(std::ostream&, Chesspiece&);
+  friend std::ostream& operator >>(std::ostream&, Chesspiece&);
   friend Chessboard;
+  
   Team team;
   char const* const symbol;
   char const* const name;
@@ -80,6 +85,7 @@ private:
 };
 
 std::ostream& operator <<(std::ostream& o, Chesspiece& cp);
+std::ostream& operator >>(std::ostream& o, Chesspiece& cp);
 
 #endif /* chesspiece_hpp */
 

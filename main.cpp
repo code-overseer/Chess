@@ -14,6 +14,8 @@ int main() {
   while (true) {
     try {
       cin>>piece>>target;
+      toupper(piece[0]);
+      toupper(target[0]);
       board->move_piece(piece, target);
       board->display_board();
     } catch (int invalid) {

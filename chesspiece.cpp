@@ -148,34 +148,30 @@ bool Pawn::isvalid(char const* origin, char const* target, Chessboard* cb) {
   
   if (tgt-org==(team ? 2:-2)) {
     if (!first_move_made) {
-      if (!cb) {
-        return true;
-      } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
-        if (!cb->positions[(org+(team ? 1:-1))%10-1]
-            [(org+(team ? 1:-1))/10-1]) {
+      if (!cb) return true;
+      if (!cb->positions[rank_index(tgt)][file_index(tgt)] &&
+          !cb->positions[rank_index(org+(team ? 1:-1))]
+            [file_index(org+(team ? 1:-1))]) {
           return true;
-        }
       }
     }
     return false;
   }
   
   if (tgt-org==(team ? 1:-1)) {
-    if (!cb) {
-      return true;
-    } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+    if (!cb) return true;
+    
+    if (!cb->positions[rank_index(tgt)][file_index(tgt)]) {
       return true;
     }
     return false;
   }
   
-  if ((tgt-org==(team ? 11:9))||
-      (tgt-org==(team ? -9:-11))) {
-    if (!cb) {
-      return true;
-    } else if (!cb->positions[tgt%10-1][tgt/10-1]) {
+  if ((tgt-org==(team ? 11:9)) || (tgt-org==(team ? -9:-11))) {
+    if (!cb) return true;
+    if (!cb->positions[rank_index(tgt)][file_index(tgt)]) {
       return false;
-    } else if (cb->positions[tgt%10-1][tgt/10-1]->team!=team) {
+    } else if (cb->positions[rank_index(tgt)][file_index(tgt)]->team!=team) {
       return true;
     }
   }
@@ -186,3 +182,13 @@ std::ostream& operator <<(std::ostream& o, Chesspiece& cp) {
   return o << cp.symbol;
 }
 
+std::ostream& operator >>(std::ostream& o, Chesspiece& cp) {
+  return o << cp.name;
+}
+
+bool Chesspiece::operator==(char const* name) const {
+  return (!strcmp(this->name,name));
+}
+bool Chesspiece::operator!=(char const* name) const {
+  return !(!strcmp(this->name,name));
+}

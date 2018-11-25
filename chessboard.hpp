@@ -19,19 +19,20 @@ class Chesspiece;
 
 class Chessboard {
 private:
-  int blackKing=pos_to_int("E8");
-  int whiteKing=pos_to_int("E1");
   bool black_check=0;
   bool white_check=0;
   bool ischeck(Team t);
   bool ischeckmate(Team t);
   bool iscastling(const char *origin, const char *target);
   bool isenpassant(const char *origin, const char *target);
-  int check_causer=NULL;
-  int en_passant=NULL; // Position of pawn that can be captured by en passant
+  void promote_pawn(const char *target);
+  int blackKing=pos_to_int("E8");
+  int whiteKing=pos_to_int("E1");
+  int check_causer=NULL; // Position of a piece that can attack the King
+  int en_passant=NULL; // Position of a pawn that can be captured by en passant
 public:
   std::array<std::array<Chesspiece*,8>,8> positions;
-  Team turn=white;//(rand()%2? white : black);
+  Team turn=white; //(rand()%2? white : black);
   void move_piece(char const* org, char const* tgt);
   void display_board();
   Chessboard();
