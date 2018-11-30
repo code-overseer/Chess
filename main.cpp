@@ -1,25 +1,30 @@
 #include "chessboard.hpp"
-#include "errors.h"
 #include <iostream>
 
 using namespace std;
 
 int main() {
-  
   cout<<"A new chess game is started!"<<endl<<endl;
   Chessboard* board = new Chessboard;
+  
   board->display_board();
   char piece[3];
   char target[3];
   while (true) {
     try {
-      cin>>piece>>target;
+      cin>>piece;
+      cin>>target;
       toupper(piece[0]);
       toupper(target[0]);
-      board->move_piece(piece, target);
+      if (board->submitMove(piece, target)==CHECKMATE)
+        throw CHECKMATE;
       board->display_board();
     } catch (int invalid) {
-      if (!invalid) {board->display_board();return NO_ERROR;}
+      if (invalid==CHECKMATE) {
+        board->display_board();
+        delete board;
+        return 0;
+      }
       continue;
     }
   }

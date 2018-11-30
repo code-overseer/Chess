@@ -3,6 +3,15 @@
 
 using namespace std;
 
+Chesspiece::Chesspiece(Team t, char const* sym, char const* n) :
+team(t), symbol(sym), name(n) {
+  for (int i=0; i<8; i++) {
+    for (int j=0; j<8; j++) {
+      num_at_position[j][i]=0;
+    }
+  }
+}
+
 Chesspiece::~Chesspiece() {
   return;
 }
@@ -51,6 +60,7 @@ bool Queen::isvalid(char const* origin, char const* target, Chessboard* cb) {
   
   for (int i=1; i<=abs(tgt-org)/dir; i++) {
     path = org + i*dir*(tgt-org<0?-1:1);
+    if (path/10<1 || path/10>8 || path%10<1 || path%10>8) break;
     if (path==tgt) {
       if (!cb->positions[path%10-1][path/10-1]) return true;
       if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
@@ -82,6 +92,7 @@ bool Bishop::isvalid(char const* origin, char const* target, Chessboard* cb) {
   
   for (int i=1; i<=abs(tgt-org)/dir; i++) {
     path = org + i*dir*(tgt-org<0?-1:1);
+    if (path/10<1 || path/10>8 || path%10<1 || path%10>8) break;
     if (path==tgt) {
       if (!cb->positions[path%10-1][path/10-1]) return true;
       if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
@@ -131,6 +142,7 @@ bool Rook::isvalid(char const* origin, char const* target, Chessboard* cb) {
   
   for (int i=1; i<=abs(tgt-org)/dir; i++) {
     path = org + i*dir*(tgt-org<0?-1:1);
+    if (path/10<1 || path/10>8 || path%10<1 || path%10>8) break;
     if (path==tgt) {
       if (!cb->positions[path%10-1][path/10-1]) return true;
       if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
@@ -189,6 +201,7 @@ std::ostream& operator >>(std::ostream& o, Chesspiece& cp) {
 bool Chesspiece::operator==(char const* name) const {
   return (!strcmp(this->name,name));
 }
+
 bool Chesspiece::operator!=(char const* name) const {
   return !(!strcmp(this->name,name));
 }
