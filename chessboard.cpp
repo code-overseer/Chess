@@ -155,9 +155,9 @@ int Chessboard::submitMove(char const* org, char const* tgt) {
     }
     // If no capture increment the moves_since_last_capture, else reset to zero
     if (!isCapture && !isEnpassant) {
-      moves_since_last_capture++;
+      turns_since_last_capture++;
     } else {
-      moves_since_last_capture=0;
+      turns_since_last_capture=0;
     }
     // Checkmate
     if ((turn ? black_check : white_check)&&ischeckmate(turn ? black : white)) {
@@ -167,9 +167,9 @@ int Chessboard::submitMove(char const* org, char const* tgt) {
     if (turn ? black_check : white_check) {
       cout<<(turn ? "Black " : "White ")<<"is in check"<<endl;
     }
-    // Fifty-move rule ask for draw
-    if (moves_since_last_capture/2>=50) {
-      ask_for_draw(moves_since_last_capture/2,FIFTY);
+    // Fifty-move rule ask for draw (move= turns / 2)
+    if (turns_since_last_capture/2>=50) {
+      ask_for_draw(turns_since_last_capture/2,FIFTY);
     }
     // Threefold repetition rule ask for draw
     if (++positions[rank_index(tgt)][file_index(tgt)]
@@ -587,7 +587,7 @@ void Chessboard::undo(const char *origin, const char *target, Team t,
 }
 
 void Chessboard::resetBoard() {
-  moves_since_last_capture=0;
+  turns_since_last_capture=0;
   black_check=0;
   white_check=0;
   blackKing=pos_to_int("E8");
@@ -611,6 +611,10 @@ void Chessboard::setupPieces() {
   for (int i=0; i<8; i++) {
     positions[1][i]=new (nothrow) Pawn(white);
     positions[6][i]=new (nothrow) Pawn(black);
+    if (!positions[1][i]||!positions[6][i]) {
+      cerr<<"Insufficient memory"<<endl;
+      throw ENOMEM;
+    }
   }
   
   positions[0][0]=new (nothrow) Rook(white);
@@ -629,6 +633,12 @@ void Chessboard::setupPieces() {
   positions[7][5]=new (nothrow) Bishop(black);
   positions[7][6]=new (nothrow) Knight(black);
   positions[7][7]=new (nothrow) Rook(black);
+  for (int i=0; i<8; i++) {
+    if (!positions[0][i]||!positions[7][i]) {
+      cerr<<"Insufficient memory"<<endl;
+      throw ENOMEM;
+    }
+  }
 }
 
 void Chessboard::messageOutput(char const *origin, char const* target,

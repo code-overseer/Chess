@@ -13,8 +13,9 @@
 #define ILLEGAL_MOVE 6
 #define STALEMATE 7
 #define CHECKMATE 1
-
+// Max number of files
 int const MAX_FILE=8;
+// Max number of ranks
 int const MAX_RANK=8;
 
 enum Team {black, white};

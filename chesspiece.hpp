@@ -4,82 +4,121 @@
 #include "helper.hpp"
 
 class Chessboard;
-
+/* Abstract Chesspiece class */
 class Chesspiece {
 private:
   // Data member
-  unsigned short num_at_position[8][8];
+  /* An array containing the number of times a piece has been at a
+   particular position */
+  unsigned short num_at_position[MAX_RANK][MAX_FILE];
 
 protected:
+  /*
+   isvalid(char const* origin, char const* target, Chessboard* cb)
+   Checks if the move from origin to target is valid, i.e. not blocked,
+   target is empty or has an enemy piece
+   returns true if the move is valid
+   
+   Note: this does not check for legality i.e. whether the move will put the
+   piece's king in check
+   */
   virtual bool
-  isvalid(char const* origin, char const* target, Chessboard* cb=nullptr)=0;
+  isvalid(char const* origin, char const* target, Chessboard* cb)=0;
   // Data member
+  /* Boolean value, true if first move has been made */
   bool first_move_made=0;
   
 public:
+  /* Constructor */
   Chesspiece(Team t, char const* sym, char const* n);
+  /* Destructor */
   virtual ~Chesspiece();
+  /* '==' Operator overload to compare the name of the piece to another
+   character array */
   bool operator==(char const* name) const;
+  /* '!=' Operator overload to compare the name of the piece to another
+   character array */
   bool operator!=(char const* name) const;
+  /* cout<<Operator overload to write the unicode symbol of the piece to the
+   ostream */
   friend std::ostream& operator <<(std::ostream&, Chesspiece&);
+  /* cout<<Operator overload to write the name of the piece to the
+   ostream */
   friend std::ostream& operator >>(std::ostream&, Chesspiece&);
   friend Chessboard;
   // Data members
+  /* Piece colour, black or white */
   Team team;
   char const* const symbol; // Unicode Chess Characters
-  char const* const name;
+  char const* const name; // Piece name
 };
 
+/* King class */
 class King : public Chesspiece {
 public:
   King(Team t) :
   Chesspiece(t, (t==white)?"\xE2\x99\x94":"\xE2\x99\x9A", "King") {};
 private:
+  /* Overriden function for King moves;
+   single file, rank or diagonal movement */
   bool isvalid(char const* origin,
                        char const* target, Chessboard* cb=nullptr) override;
 };
-
+/* Queen class */
 class Queen : public Chesspiece {
 public:
   Queen(Team t) :
   Chesspiece(t, (t==white)?"\xE2\x99\x95":"\xE2\x99\x9B", "Queen") {};
 private:
+  /* Overriden function for Queen moves;
+   across files, ranks or diagonals if not blocked */
   bool isvalid(char const* origin,
                        char const* target, Chessboard* cb=nullptr) override;
 };
-
+/* Bishop class */
 class Bishop : public Chesspiece {
 public:
   Bishop(Team t) :
   Chesspiece(t, (t==white)?"\xE2\x99\x97":"\xE2\x99\x9D", "Bishop") {};
 private:
+  /* Overriden function for Bishop moves;
+   across diagonals only if not blocked */
   bool isvalid(char const* origin,
                        char const* target, Chessboard* cb=nullptr) override;
 };
-
+/* Knight class */
 class Knight : public Chesspiece {
 public:
   Knight(Team t) :
   Chesspiece(t, (t==white)?"\xE2\x99\x98":"\xE2\x99\x9E", "Knight") {};
 private:
+  /* Overriden function for Knight moves;
+   L-shaped movement with 8 possible movements */
   bool isvalid(char const* origin,
                        char const* target, Chessboard* cb=nullptr) override;
 };
-
+/* Rook class */
 class Rook : public Chesspiece {
 public:
   Rook(Team t) :
   Chesspiece(t, (t==white)?"\xE2\x99\x96":"\xE2\x99\x9C", "Rook") {};
 private:
+  /* Overriden function for Rook moves;
+   across files, ranks if not blocked */
   bool isvalid(char const* origin,
                        char const* target, Chessboard* cb=nullptr) override;
 };
-
+/* Pawn class */
 class Pawn : public Chesspiece {
 public:
   Pawn(Team t) :
   Chesspiece(t, (t==white)?"\xE2\x99\x99":"\xE2\x99\x9F", "Pawn") {};
 private:
+  /* Overriden function for Pawn moves;
+   single rank increase only if not the first move
+   double rank increase is possible for the first move
+   captures diagonally in a single position forward
+   */
   bool isvalid(char const* origin,
                        char const* target, Chessboard* cb=nullptr) override;
 };
