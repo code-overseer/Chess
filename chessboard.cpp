@@ -1,11 +1,10 @@
 
-#include "chessboard.hpp"
-#include "chesspiece.hpp"
+#include "ChessBoard.h"
 #include <ios>
 #include <limits.h>
 
 using namespace std;
-Chessboard::Chessboard() {
+ChessBoard::ChessBoard() {
   for (int i=0; i<8; i++) {
     for (int j=0; j<8; j++) {
       positions[i][j]=nullptr;
@@ -14,7 +13,7 @@ Chessboard::Chessboard() {
   setupPieces();
 }
 
-Chessboard::~Chessboard() {
+ChessBoard::~ChessBoard() {
   for (int i=0; i<8; i++) {
     for (int j=0; j<8; j++) {
       if (!positions[i][j]) {
@@ -26,7 +25,7 @@ Chessboard::~Chessboard() {
   }
 }
 
-void Chessboard::display_board() {
+void ChessBoard::display_board() {
   cout << "    ";
   for (int i=0; i<8; i++)
     cout << (char) ('A'+i) << "   ";
@@ -52,7 +51,7 @@ void Chessboard::display_board() {
   cout<<endl;
 }
 
-int Chessboard::canAttack(char const* target, Team t) {
+int ChessBoard::canAttack(char const* target, Team t) {
   char origin[3];
   for (int i=0; i<64; i++) {
     if (!positions[i%8][i/8]||positions[i%8][i/8]->team!=t) continue;
@@ -64,7 +63,7 @@ int Chessboard::canAttack(char const* target, Team t) {
   return NULL;
 }
 
-int Chessboard::submitMove(char const* org, char const* tgt) {
+int ChessBoard::submitMove(char const* org, char const* tgt) {
   try {
     bool isCapture=false;
     bool isCastling=false;
@@ -198,7 +197,7 @@ int Chessboard::submitMove(char const* org, char const* tgt) {
   }
 }
 
-int Chessboard::submitMove_exceptions
+int ChessBoard::submitMove_exceptions
 (int status, char const* origin, char const* target) {
   switch (status) {
     case INVALID_MOVE:
@@ -256,7 +255,7 @@ int Chessboard::submitMove_exceptions
   }
 }
 
-bool Chessboard::ischeck(Team t) {
+bool ChessBoard::ischeck(Team t) {
   char king_pos[3];
   int_to_pos((t ? whiteKing:blackKing), king_pos);
   check_causer=canAttack(king_pos, t?black:white);
@@ -265,7 +264,7 @@ bool Chessboard::ischeck(Team t) {
   return false;
 }
 
-bool Chessboard::ischeckmate(Team t) {
+bool ChessBoard::ischeckmate(Team t) {
   // t is the team that is in check (i.e. team that is losing)
   char origin[3];
   char attack_pos[3];
@@ -365,7 +364,7 @@ bool Chessboard::ischeckmate(Team t) {
   return true; // Checkmate
 }
 
-bool Chessboard::checkCastling(const char *origin, const char *target) {
+bool ChessBoard::checkCastling(const char *origin, const char *target) {
   if (strcmp(origin, turn ? "E1": "E8") ||
       (strcmp(target, turn ? "G1": "G8") &&
        strcmp(target, turn ? "C1": "C8")))
@@ -414,7 +413,7 @@ bool Chessboard::checkCastling(const char *origin, const char *target) {
   return true;
 }
 
-bool Chessboard::checkEnpassant(const char *origin, const char *target) {
+bool ChessBoard::checkEnpassant(const char *origin, const char *target) {
   if (!en_passant) return false;
   
   // Captured pawn just moved two steps in its first turn
@@ -440,7 +439,7 @@ bool Chessboard::checkEnpassant(const char *origin, const char *target) {
   return true;
 }
 
-bool Chessboard::checkStalemate() {
+bool ChessBoard::checkStalemate() {
   char origin[3];
   char attack_pos[3];
 
@@ -510,7 +509,7 @@ bool Chessboard::checkStalemate() {
   return true;
 }
 
-void Chessboard::promote_pawn(char const* target) {
+void ChessBoard::promote_pawn(char const* target) {
   if ((*positions[rank_index(target)][file_index(target)]=="Pawn") &&
       target[1]==(turn ? '8' : '1')) {
     cout<<"Pawn promotion available!"<<endl;
@@ -562,7 +561,7 @@ void Chessboard::promote_pawn(char const* target) {
   return;
 }
 
-void Chessboard::undo(const char *origin, const char *target, Team t,
+void ChessBoard::undo(const char *origin, const char *target, Team t,
                       bool isEnpassant) {
   positions[rank_index(origin)][file_index(origin)]
   = positions[rank_index(target)][file_index(target)];
@@ -586,7 +585,7 @@ void Chessboard::undo(const char *origin, const char *target, Team t,
   return;
 }
 
-void Chessboard::resetBoard() {
+void ChessBoard::resetBoard() {
   turns_since_last_capture=0;
   black_check=0;
   white_check=0;
@@ -607,7 +606,7 @@ void Chessboard::resetBoard() {
   setupPieces();
 }
 
-void Chessboard::setupPieces() {
+void ChessBoard::setupPieces() {
   for (int i=0; i<8; i++) {
     positions[1][i]=new (nothrow) Pawn(white);
     positions[6][i]=new (nothrow) Pawn(black);
@@ -641,7 +640,7 @@ void Chessboard::setupPieces() {
   }
 }
 
-void Chessboard::messageOutput(char const *origin, char const* target,
+void ChessBoard::messageOutput(char const *origin, char const* target,
                                bool capture, bool enpassant, bool castling) {
   cout<<(turn ? "White's " : "Black's ");
   cout>>*positions[rank_index(target)][file_index(target)];
@@ -669,7 +668,7 @@ void Chessboard::messageOutput(char const *origin, char const* target,
   return;
 }
 
-void Chessboard::ask_for_draw(int num, int flag) {
+void ChessBoard::ask_for_draw(int num, int flag) {
   if (flag==THREEFOLD) {
     cout<<"This piece has been at this position "<<num<<" times! ";
   } else if (flag==FIFTY) {

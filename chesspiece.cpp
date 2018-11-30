@@ -1,5 +1,5 @@
 #include "chesspiece.hpp"
-#include "chessboard.hpp"
+#include "ChessBoard.h"
 
 using namespace std;
 
@@ -16,7 +16,7 @@ Chesspiece::~Chesspiece() {
   return;
 }
 
-bool King::isvalid(char const* origin, char const* target, Chessboard* cb) {
+bool King::isvalid(char const* origin, char const* target, ChessBoard* cb) {
   int tgt = pos_to_int(target);
   int org = pos_to_int(origin);
   if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
@@ -33,7 +33,7 @@ bool King::isvalid(char const* origin, char const* target, Chessboard* cb) {
   return false;
 }
 
-bool Queen::isvalid(char const* origin, char const* target, Chessboard* cb) {
+bool Queen::isvalid(char const* origin, char const* target, ChessBoard* cb) {
   int tgt = pos_to_int(target);
   int org = pos_to_int(origin);
   int path=0;
@@ -65,7 +65,7 @@ bool Queen::isvalid(char const* origin, char const* target, Chessboard* cb) {
   return false;
 }
 
-bool Bishop::isvalid(char const* origin, char const* target, Chessboard* cb) {
+bool Bishop::isvalid(char const* origin, char const* target, ChessBoard* cb) {
   int tgt = pos_to_int(target);
   int org = pos_to_int(origin);
   int path=0;
@@ -93,7 +93,7 @@ bool Bishop::isvalid(char const* origin, char const* target, Chessboard* cb) {
   return false;
 }
 
-bool Knight::isvalid(char const* origin, char const* target, Chessboard* cb) {
+bool Knight::isvalid(char const* origin, char const* target, ChessBoard* cb) {
   int tgt = pos_to_int(target);
   int org = pos_to_int(origin);
   if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;
@@ -109,7 +109,7 @@ bool Knight::isvalid(char const* origin, char const* target, Chessboard* cb) {
   return false;
 }
 
-bool Rook::isvalid(char const* origin, char const* target, Chessboard* cb) {
+bool Rook::isvalid(char const* origin, char const* target, ChessBoard* cb) {
   int tgt = pos_to_int(target);
   int org = pos_to_int(origin);
   int path=0;
@@ -137,7 +137,7 @@ bool Rook::isvalid(char const* origin, char const* target, Chessboard* cb) {
   return false;
 }
 
-bool Pawn::isvalid(char const* origin, char const* target, Chessboard* cb) {
+bool Pawn::isvalid(char const* origin, char const* target, ChessBoard* cb) {
   int tgt = pos_to_int(target);
   int org = pos_to_int(origin);
   if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8) return false;

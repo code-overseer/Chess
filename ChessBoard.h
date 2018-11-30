@@ -1,14 +1,13 @@
-#ifndef chessboard_hpp
-#define chessboard_hpp
+#ifndef ChessBoard_hpp
+#define ChessBoard_hpp
 
 #include "helper.hpp"
+#include "chesspiece.hpp"
 
 int const THREEFOLD = 3;
 int const FIFTY = 50;
 
-class Chesspiece;
-
-class Chessboard {
+class ChessBoard {
 private:
   /*
    ischeck(Team t)
@@ -210,8 +209,8 @@ public:
    setupPieces function
    */
   void resetBoard();
-  Chessboard();
-  ~Chessboard();
+  ChessBoard();
+  ~ChessBoard();
   
   // Data members
   /*
