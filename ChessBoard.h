@@ -39,7 +39,7 @@ private:
    it is only a check
    * Note: This check inherently checks for legality
    */
-  bool checkCastling(const char *origin, const char *target);
+  bool checkCastling(int origin, int target);
   /*
    checkEnpassant(const char *origin, const char *target);
    * Function to check if the en passant capture by moving a pawn from
@@ -57,7 +57,7 @@ private:
    * Note: This function does NOT change the positions of the pieces,
    it is only a check
    */
-  bool checkEnpassant(const char *origin, const char *target);
+  bool checkEnpassant(int origin, int target);
   /*
    checkStalemate();
    * Function to check if the board is at a stalemate
@@ -79,7 +79,7 @@ private:
    * Note: This function does NOT change the positions of the pieces,
    it is only a check
    */
-  int canAttack(char const* target, Team t);
+  int canAttack(int target, Team t);
   /*
    submitMove_exceptions(int status, char const* origin, char const* target);
    * Function used to handle exceptions in the submitMove member function
@@ -102,7 +102,7 @@ private:
    player would like to check for a stalemate, if it is true, then it will
    return STALEMATE
    */
-  int submitMove_exceptions(int status, char const* origin, char const* target);
+  int submitMove_exceptions(int status, char const *origin, char const *target);
   
   /*
    undo(char const* origin, char const* target, Team t, bool isEnpassant)
@@ -115,7 +115,7 @@ private:
    
    * No return value
    */
-  void undo(char const* origin, char const* target, Team t, bool isEnpassant);
+  void undo(int origin, int target, Team t, bool isEnpassant);
   /*
    promote_pawn(const char *target)
    
@@ -126,7 +126,7 @@ private:
    
    * No return value
    */
-  void promote_pawn(const char *target);
+  void promote_pawn(char const* target);
   /*
    setupPieces()
    
@@ -150,7 +150,7 @@ private:
    
    * No return value
    */
-  void messageOutput(char const *origin, char const* target,
+  void messageOutput(char const *origin, char const *target,
                      bool capture, bool enpassant, bool castling);
   
   /*
