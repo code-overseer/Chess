@@ -12,6 +12,8 @@ private:
   /*
    ischeck(Team t)
    * Function to check if Team t is in check
+   * t_king is a hypothetical king position (defaulted to NULL which will set
+   the actual King position within the function)
    * returns a boolean value, true if 't' is in check and false otherwise
    */
   bool ischeck(Team t, int t_king=NULL);
