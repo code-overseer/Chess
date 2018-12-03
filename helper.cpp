@@ -15,19 +15,19 @@ void int_to_pos(int pos, char* position) {
   return;
 }
 
-int rank_index(int pos) {
+int rIndex(int pos) {
   return pos%10-1;
 }
 
-int rank_index(char const* position) {
+int rIndex(char const* position) {
   return position[1]-'1';
 }
 
-int file_index(int pos) {
+int fIndex(int pos) {
   return pos/10-1;
 }
 
-int file_index(char const* position) {
+int fIndex(char const* position) {
   return position[0]-'A';
 }
 

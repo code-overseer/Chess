@@ -14,7 +14,7 @@ private:
    * Function to check if Team t is in check
    * returns a boolean value, true if 't' is in check and false otherwise
    */
-  bool ischeck(Team t);
+  bool ischeck(Team t, int t_king=NULL);
   /*
    ischeckmate(Team t)
    * Function to check if Team t is in checkmate
@@ -72,16 +72,27 @@ private:
   /*
    canAttack(char const* target, Team t, bool pawn)
    * Function to check if ANY piece in Team 't' can *attack* a target position
-   * The pawn boolean is a flag, set true to include pawn attacking the target,
-   which will check for the appropriate diagonal of the target for pawns of
-   Team 't', set to false to disable this.
+   regardless of legality (putting own king in check)
    
-   * Returns a boolean value, true if the attack is possible and false otherwise
+   * Returns an integer value representing the position of the first attacker
+   found, 0 otherwise
    
    * Note: This function does NOT change the positions of the pieces,
    it is only a check
    */
-  int canAttack(int target, Team t, bool pawn);
+  int canAttack(int target, Team t);
+  /*
+   legalAttack(int target, Team t)
+   * Function to check if ANY piece in Team 't' can *attack* a target position
+   regardless of legality (putting own king in check)
+   
+   * Returns a boolean value, true if the attack is legal and possible and
+   false otherwise
+   
+   * Note: This function does NOT change the positions of the pieces,
+   it undos the changes after checking for legality
+   */
+  bool legalAttack(int target, Team t);
   /*
    submitMove_exceptions(int status, char const* origin, char const* target);
    * Function used to handle exceptions in the submitMove member function
@@ -173,8 +184,6 @@ private:
   /* Data members */
   /* Number of turns since last capture */
   int turns_since_last_capture=0;
-  /* Number of illegal moves in a row */
-  int illegalMoves=0;
   /* Is black in check? */
   bool black_check=0;
   /* Is white in check? */
@@ -186,7 +195,7 @@ private:
   /* Temporarily stores captured piece */
   Chesspiece* captured_piece=nullptr;
   /* Position of a piece that can attack the King */
-  int check_causer=NULL;
+  int checker=NULL;
   /* Position of a pawn that can be captured by en passant */
   int en_passant=NULL;
 public:
@@ -219,7 +228,7 @@ public:
    * An array of chesspiece pointers, points to nullptr if the position is
    empty and points to a piece otherwise
    */
-  std::array<std::array<Chesspiece*,MAX_FILE>,MAX_RANK> positions;
+  std::array<std::array<Chesspiece*,8>,8> positions;
   /* Whose turn is it */
   Team turn=white;
 };

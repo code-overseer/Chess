@@ -16,11 +16,11 @@ int main() {
       cin>>target;
       toupper(piece[0]);
       toupper(target[0]);
-      if (board->submitMove(piece, target)==CHECKMATE)
-        throw CHECKMATE;
+      if (board->submitMove(piece, target)==END_GAME)
+        throw END_GAME;
       board->display_board();
     } catch (int invalid) {
-      if (invalid==CHECKMATE) {
+      if (invalid==END_GAME) {
         board->display_board();
         delete board;
         return 0;

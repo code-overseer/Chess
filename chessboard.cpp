@@ -49,27 +49,25 @@ void ChessBoard::display_board() {
   cout<<endl;
 }
 
-int ChessBoard::canAttack(int target, Team t, bool pawn) {
+int ChessBoard::canAttack(int target, Team t) {
   // Check for pawn attackers
-  
-  if (pawn) {
-    int pwn = target+(t?-11:11);
-    if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
-        positions[rank_index(pwn)][file_index(pwn)]) {
-      if (*positions[rank_index(pwn)][file_index(pwn)]=="Pawn" &&
-          positions[rank_index(pwn)][file_index(pwn)]->team==t) {
-        return pwn;
-      }
-    }
-    pwn = target+(t?9:-9);
-    if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
-        positions[rank_index(pwn)][file_index(pwn)]) {
-      if (*positions[rank_index(pwn)][file_index(pwn)]=="Pawn" &&
-          positions[rank_index(pwn)][file_index(pwn)]->team==t) {
-        return pwn;
-      }
+  int pwn = target+(t?-11:11);
+  if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
+      positions[rIndex(pwn)][fIndex(pwn)]) {
+    if (*positions[rIndex(pwn)][fIndex(pwn)]=="Pawn" &&
+        positions[rIndex(pwn)][fIndex(pwn)]->team==t) {
+      return pwn;
     }
   }
+  pwn = target+(t?9:-9);
+  if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
+      positions[rIndex(pwn)][fIndex(pwn)]) {
+    if (*positions[rIndex(pwn)][fIndex(pwn)]=="Pawn" &&
+        positions[rIndex(pwn)][fIndex(pwn)]->team==t) {
+      return pwn;
+    }
+  }
+  
   // Check for others
   for (int f=0; f<8; f++) {
     for (int r=0; r<8; r++) {
@@ -93,51 +91,51 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8 ||
         org/10<1 || org/10>8 || org%10<1 || org%10>8) {
       throw INVALID_INPUT;
-    } else if (!positions[rank_index(org)][file_index(org)]) {
+    } else if (!positions[rIndex(org)][fIndex(org)]) {
       throw NO_PIECE_AT_POSITION;
-    } else if (positions[rank_index(org)][file_index(org)]->team!=turn) {
+    } else if (positions[rIndex(org)][fIndex(org)]->team!=turn) {
       throw NOT_YOUR_TURN;
     }
     // Making the move
     if ((isEnpassant=checkEnpassant(org, tgt))){
       // Captured piece is not deleted until the move is ensured to be legal
-      captured_piece=positions[rank_index(org)][file_index(tgt)];
-      positions[rank_index(tgt)][file_index(tgt)]
-      = positions[rank_index(org)][file_index(org)];
-      positions[rank_index(org)][file_index(tgt)]=nullptr;
-      positions[rank_index(org)][file_index(org)]=nullptr;
+      captured_piece=positions[rIndex(org)][fIndex(tgt)];
+      positions[rIndex(tgt)][fIndex(tgt)]
+      = positions[rIndex(org)][fIndex(org)];
+      positions[rIndex(org)][fIndex(tgt)]=nullptr;
+      positions[rIndex(org)][fIndex(org)]=nullptr;
       en_passant=NULL;
     } else if ((isCastling=checkCastling(org, tgt))) {
       // This move will always be legal
       // checkCastling has an internal legality check
-      positions[rank_index(tgt)][file_index(tgt)]
-      = positions[rank_index(org)][file_index(org)];
-      positions[rank_index(org)][file_index(org)]=nullptr;
+      positions[rIndex(tgt)][fIndex(tgt)]
+      = positions[rIndex(org)][fIndex(org)];
+      positions[rIndex(org)][fIndex(org)]=nullptr;
       if (target[0]=='G') {
         //H move to F
-        positions[rank_index(turn ? "F1":"F8")][file_index(turn ? "F1":"F8")]
-        = positions[rank_index(turn ? "H1":"H8")][file_index(turn ? "H1":"H8")];
+        positions[rIndex(turn ? "F1":"F8")][fIndex(turn ? "F1":"F8")]
+        = positions[rIndex(turn ? "H1":"H8")][fIndex(turn ? "H1":"H8")];
         
-        positions[rank_index(turn ? "H1": "H8")][file_index(turn ? "H1":"H8")]
+        positions[rIndex(turn ? "H1": "H8")][fIndex(turn ? "H1":"H8")]
         = nullptr;
       } else {
         //A move to D
-        positions[rank_index(turn ? "D1":"D8")][file_index(turn ? "D1":"D8")]
-        = positions[rank_index(turn ? "A1":"A8")][file_index(turn ? "A1":"A8")];
+        positions[rIndex(turn ? "D1":"D8")][fIndex(turn ? "D1":"D8")]
+        = positions[rIndex(turn ? "A1":"A8")][fIndex(turn ? "A1":"A8")];
         
-        positions[rank_index(turn ? "A1": "A8")][file_index(turn ? "A1":"A8")]
+        positions[rIndex(turn ? "A1": "A8")][fIndex(turn ? "A1":"A8")]
         = nullptr;
       }
-    } else if (!positions[rank_index(org)][file_index(org)]
+    } else if (!positions[rIndex(org)][fIndex(org)]
                ->isvalid(org, tgt, this)) {
       throw INVALID_MOVE;
     } else {
-      captured_piece=positions[rank_index(tgt)][file_index(tgt)];
+      captured_piece=positions[rIndex(tgt)][fIndex(tgt)];
       
-      positions[rank_index(tgt)][file_index(tgt)]
-      = positions[rank_index(org)][file_index(org)];
+      positions[rIndex(tgt)][fIndex(tgt)]
+      = positions[rIndex(org)][fIndex(org)];
       
-      positions[rank_index(org)][file_index(org)]=nullptr;
+      positions[rIndex(org)][fIndex(org)]=nullptr;
       if (captured_piece) isCapture=true;
     }
     
@@ -151,11 +149,9 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     // Cannot be in check after moving, if illegal, undo move
     if (turn ? white_check : black_check) {
       undo(org, tgt, turn, isEnpassant);
-      illegalMoves++;
       throw ILLEGAL_MOVE;
     }
-    // Reset illegal moves count
-    illegalMoves=0;
+    
     // Output move message
     messageOutput(origin, target, isCapture, isEnpassant, isCastling);
     // Free memory
@@ -186,28 +182,28 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       ask_for_draw(turns_since_last_capture/2,FIFTY);
     }
     // Threefold repetition rule ask for draw
-    if (++positions[rank_index(tgt)][file_index(tgt)]
-        ->num_at_position[rank_index(tgt)][file_index(tgt)]>=THREEFOLD) {
-      ask_for_draw(positions[rank_index(tgt)][file_index(tgt)]
-                   ->num_at_position[rank_index(tgt)][file_index(tgt)],
+    if (++positions[rIndex(tgt)][fIndex(tgt)]
+        ->num_at_position[rIndex(tgt)][fIndex(tgt)]>=THREEFOLD) {
+      ask_for_draw(positions[rIndex(tgt)][fIndex(tgt)]
+                   ->num_at_position[rIndex(tgt)][fIndex(tgt)],
                    THREEFOLD);
     }
     // If the piece has been moved for the 1st time, first_move_made to true
-    if (!positions[rank_index(tgt)][file_index(tgt)]->first_move_made) {
-      if (*positions[rank_index(tgt)][file_index(tgt)]=="Pawn" &&
+    if (!positions[rIndex(tgt)][fIndex(tgt)]->first_move_made) {
+      if (*positions[rIndex(tgt)][fIndex(tgt)]=="Pawn" &&
           target[1]==(turn?'4':'5')) {
         // If at fifth rank set to en_passant
         en_passant=tgt;
       }
       // Increment number of times at original position
-      positions[rank_index(tgt)][file_index(tgt)]
-      ->num_at_position[rank_index(org)][file_index(org)]++;
-      positions[rank_index(tgt)][file_index(tgt)]->first_move_made=true;
+      positions[rIndex(tgt)][fIndex(tgt)]
+      ->num_at_position[rIndex(org)][fIndex(org)]++;
+      positions[rIndex(tgt)][fIndex(tgt)]->first_move_made=true;
     }
     // End of turn
     turn = turn ? black : white;
     if (checkStalemate()) throw STALEMATE;
-    return 0;
+    return NEXT_TURN;
   } catch (int status) {
     return submitMove_exceptions(status, origin, target);
   }
@@ -218,7 +214,7 @@ int ChessBoard::submitMove_exceptions(int status, char const* origin,
   switch (status) {
     case INVALID_MOVE:
       cerr<<(turn ? "White's ":"Black's ");
-      cerr<<positions[rank_index(origin)][file_index(origin)]->name;
+      cerr<<positions[rIndex(origin)][fIndex(origin)]->name;
       cerr<<" cannot move to "<<target<<'!'<<endl;
       return status;
     case INVALID_INPUT:
@@ -237,7 +233,7 @@ int ChessBoard::submitMove_exceptions(int status, char const* origin,
     case ILLEGAL_MOVE:
       cerr<<"Illegal move! ";
       cerr<<(turn ? "White's ":"Black's ");
-      cerr<<positions[rank_index(origin)][file_index(origin)]->name;
+      cerr<<positions[rIndex(origin)][fIndex(origin)]->name;
       cerr<<" moving to "<<target<<" puts ";
       cerr<<(turn ? "White ":"Black ")<<"in check!"<<endl;
       return status;
@@ -251,20 +247,57 @@ int ChessBoard::submitMove_exceptions(int status, char const* origin,
   }
 }
 
-bool ChessBoard::ischeck(Team t) {
-  // legality doesn't matter
-  check_causer=canAttack((t ? whiteKing:blackKing), t?black:white, true);
-  if (check_causer) return true;
+bool ChessBoard::ischeck(Team t, int t_king) {
+  if (!t_king) t_king = (t ? whiteKing:blackKing);
+  checker=canAttack(t_king, t?black:white);
+  if (checker) return true;
   return false;
+}
+
+bool ChessBoard::legalAttack(int target, Team t) {
+  int origin=0;
+  int r_t=rIndex(target), f_t=fIndex(target);
+  bool isEnpassant=false;
+  // tmp storage
+  int tmp_enpassant = en_passant;
+  for (int r_o=0; r_o<8; r_o++) {
+    for (int f_o=0; f_o<8; f_o++) {
+      origin = index_to_int(f_o, r_o);
+      if (!positions[r_o][f_o]||positions[r_o][f_o]->team!=t) continue;
+    
+      if ((isEnpassant=checkEnpassant(origin, target))) {
+        captured_piece = positions[r_o][f_t];
+        positions[r_t][f_t] = positions[r_o][f_o];
+        positions[r_o][f_t]=nullptr;
+        positions[r_o][f_o]=nullptr;
+      } if (!positions[r_o][f_o]->isvalid(origin, target, this)) {
+        continue;
+      } else {
+        captured_piece = positions[r_t][f_t];
+        positions[r_t][f_t] = positions[r_o][f_o];
+        positions[r_o][f_o]=nullptr;
+      }
+      if (ischeck(t,(origin==(t?whiteKing:blackKing))?target:0)) {
+        undo(origin, target, t, isEnpassant);
+        en_passant=tmp_enpassant;
+      } else {
+        undo(origin, target, t, isEnpassant);
+        en_passant=tmp_enpassant;
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 bool ChessBoard::ischeckmate(Team t) {
   // t is the team that is in check (i.e. team that is losing)
-  int attack_pos=check_causer;
-  // If check_causer can be attacked by the team in check,
-  // checkmate is not achieved
-  // legally
-  if (canAttack(attack_pos, t?white:black, true)) return false;
+  int attack_pos=checker;
+  // If checker can be attacked LEGALLY by the team in check,
+  // checkmate is not achieved (cannot use canAttack)
+  
+  if (!legalAttack(attack_pos, t?white:black)) return false;
+  
   // 1->rank++; -1->rank--; 10->file++; -10->file--; 11->file++,rank++;
   // -11->file--,rank--; 9->file++,rank--; -9->file--,rank++
   int king_moves[8]={1,-1,10,-10,11,-11,9,-9};
@@ -272,11 +305,12 @@ bool ChessBoard::ischeckmate(Team t) {
   // Check if King is stuck
   for (int j =0; j<8; j++) {
     attack_pos=(t?whiteKing:blackKing) + king_moves[j];
-    if (!positions[rank_index(king_pos)][file_index(king_pos)]
+    if (!positions[rIndex(king_pos)][fIndex(king_pos)]
         ->isvalid(king_pos, attack_pos, this)) {
       continue;
-    } //legally
-    if (!canAttack(attack_pos, t?black:white, true)) return false;
+    }
+    // legality doesn't matter, King cannot put itself in check
+    if (!canAttack(attack_pos, t?black:white)) return false;
   }
   
   /*
@@ -287,12 +321,10 @@ bool ChessBoard::ischeckmate(Team t) {
    while Knights can skip over pieces)
    */
   int count=0;
-  int distance;
-  int direction;
-  if (*positions[rank_index(check_causer)][file_index(check_causer)]!="Knight"||
-      *positions[rank_index(check_causer)][file_index(check_causer)]!="Pawn") {
-    distance = (turn ? blackKing:whiteKing) - check_causer;
-    
+  if (*positions[rIndex(checker)][fIndex(checker)]!="Knight"||
+      *positions[rIndex(checker)][fIndex(checker)]!="Pawn") {
+    int distance = (turn ? blackKing:whiteKing) - checker;
+    int direction=0;
     // 1->rank++; -1->rank--; 10->file++; -10->file--; 11->file++,rank++;
     // -11->file--,rank--; 9->file++,rank--; -9->file--,rank++
     if (!(abs(distance)%11)) {
@@ -305,47 +337,42 @@ bool ChessBoard::ischeckmate(Team t) {
       direction=1;  // vertical (rank) attack
     }
     
-    attack_pos=check_causer;
+    attack_pos=checker;
     for (int i=1; i<abs(distance)/direction; i++) {
       count=0;
       attack_pos += i*direction*(distance<0?-1:1);
       if (attack_pos/10<1 || attack_pos/10>8 ||
           attack_pos%10<1 || attack_pos%10>8) continue;
-      
+      static int origin = 0;
       for (int f=0; f<8; f++) {
         for (int r=0; r<8; r++) {
           if (!positions[r][f]||positions[r][f]->team!=t) continue;
-          static int origin = index_to_int(f, r);
+          origin = index_to_int(f, r);
           if (!positions[r][f]->isvalid(origin, attack_pos, this)) {
             continue;
           } else {
             // Try to move in the way
             /* attack_pos will always be empty, since the piece must have a
              clear path to the king for cause a check */
-            positions[rank_index(attack_pos)][file_index(attack_pos)]
-            = positions[rank_index(origin)][file_index(origin)];
-            positions[rank_index(origin)][file_index(origin)]=nullptr;
+            positions[rIndex(attack_pos)][fIndex(attack_pos)]
+            = positions[rIndex(origin)][fIndex(origin)];
+            positions[rIndex(origin)][fIndex(origin)]=nullptr;
           }
           
           if (origin==(t ? whiteKing : blackKing)) {
             (t ? whiteKing = attack_pos : blackKing = attack_pos);
-            static int tmp_checker = check_causer;
-            static Chesspiece* temp
-            = positions[rank_index(check_causer)][file_index(check_causer)];
-            positions[rank_index(check_causer)][file_index(check_causer)]=nullptr;
-            check_causer=NULL;
-            // Need to temporarily remove check_causer to see if the King can
-            // capture it if it were to stop one position away
-            if (!ischeck(t)) {
-              count++;
-            }
-            check_causer=tmp_checker;
-            positions[rank_index(check_causer)][file_index(check_causer)]=temp;
+            static int tmp_checker = checker;
+            static Chesspiece* temp=positions[rIndex(checker)][fIndex(checker)];
+            positions[rIndex(checker)][fIndex(checker)]=nullptr;
+            checker=NULL;
+            /* Temporarily remove checker from its position to see if the King
+             cen capture checker if it were to stop one position away */
+            if (!ischeck(t)) count++;
+            checker=tmp_checker;
+            positions[rIndex(checker)][fIndex(checker)]=temp;
             temp=nullptr;
           } else {
-            if (!ischeck(t)) {
-              count++;
-            }
+            if (!ischeck(t)) count++;
           }
           undo(origin, attack_pos, t, false);
           if (count>1) return false;
@@ -375,28 +402,28 @@ bool ChessBoard::checkCastling(int origin, int target) {
   
   // Not King or not Rook
   if (origin!=(turn?whiteKing:blackKing)||
-      !positions[rank_index(rook)][file_index(rook)]||
-      *positions[rank_index(rook)][file_index(rook)]!="Rook")
+      !positions[rIndex(rook)][fIndex(rook)]||
+      *positions[rIndex(rook)][fIndex(rook)]!="Rook")
     return false;
   
   // Has the first move been made for the King and Rook
-  if (positions[rank_index(origin)][file_index(origin)]->first_move_made ||
-      positions[rank_index(rook)][file_index(rook)]->first_move_made)
+  if (positions[rIndex(origin)][fIndex(origin)]->first_move_made ||
+      positions[rIndex(rook)][fIndex(rook)]->first_move_made)
     return false;
   
   // King not in check
   if (turn ? white_check : black_check) return false;
   
   // Empty path
-  for (int i=1; i<abs(file_index(rook)-file_index(origin)); i++) {
-    if (positions[rank_index(origin)]
-        [file_index(origin)+i*((file_index(rook)-file_index(origin))<0?-1:1)])
+  for (int i=1; i<abs(fIndex(rook)-fIndex(origin)); i++) {
+    if (positions[rIndex(origin)]
+        [fIndex(origin)+i*((fIndex(rook)-fIndex(origin))<0?-1:1)])
       return false;
   }
   // Does the king cross or stop at a position that can be attacked
-  // legality doesn't matter
-  if (!canAttack(target, turn?black:white,true)||
-      !canAttack(kings_cross, turn?black:white,true)) return false;
+  // legality doesn't matter, King cannot put itself in check
+  if (!canAttack(target, turn?black:white)||
+      !canAttack(kings_cross, turn?black:white)) return false;
   
   return true;
 }
@@ -412,16 +439,16 @@ bool ChessBoard::checkEnpassant(int origin, int target) {
   en_passant=NULL;
   
   // Capturing pawn on fifth rank
-  if (rank_index(origin) != (turn ? rank5_white : rank5_black)) return false;
+  if (rIndex(origin) != (turn ? rank5_white : rank5_black)) return false;
   
   // Captured pawn on adjacent file
-  if (rank_index(captured)!=rank_index(origin) ||
-      file_index(captured)!=file_index(target))
+  if (rIndex(captured)!=rIndex(origin) ||
+      fIndex(captured)!=fIndex(target))
     return false;
   
   // Both pieces involved must be pawns
-  if (*positions[rank_index(origin)][file_index(target)]!="Pawn" ||
-      *positions[rank_index(origin)][file_index(origin)]!="Pawn")
+  if (*positions[rIndex(origin)][fIndex(target)]!="Pawn" ||
+      *positions[rIndex(origin)][fIndex(origin)]!="Pawn")
     return false;
   
   return true;
@@ -445,64 +472,34 @@ bool ChessBoard::checkStalemate() {
     if (attack_pos/10>=1 && attack_pos/10<=8 &&
         attack_pos%10>=1 && attack_pos%10<=8) {
       total++;
-      if (!positions[rank_index(king_pos)][file_index(king_pos)]
+      if (!positions[rIndex(king_pos)][fIndex(king_pos)]
           ->isvalid(king_pos, attack_pos, this)) {
-        if (positions[rank_index(attack_pos)][file_index(attack_pos)]->team
+        if (positions[rIndex(attack_pos)][fIndex(attack_pos)]->team
               == turn) own_piece++;
         continue;
       }
-      // Can't be attack legally
-      if (!canAttack(attack_pos, turn?black:white,true)) {
-        return false;
-      }
+      // legality doesn't matter, King cannot put itself in check
+      if (!canAttack(attack_pos, turn?black:white)) return false;
     }
   }
+  
   // Not a stalemate if King is surrounded by its own pieces
   if (total==own_piece) return false;
-  
-  bool isEnpassant=false;
-  int tmp_enpassant = en_passant;
-  // If the King is stuck, check every other piece there is any other legal move
+  /* If the King is stuck, check every other piece if there is any other legal
+   move */
+  // ap: attack position; o: origin
+  int r_ap=0, f_ap=0;
   for (int i=0; i<64; i++) {
-    if (positions[i%8][i/8]&&positions[i%8][i/8]->team==turn) continue;
-    attack_pos=index_to_int(i/8, i%8);
-    for (int j=0; j<64; j++) {
-      if (!positions[j%8][j/8]||*positions[j%8][j/8]=="King"||
-          positions[j%8][j/8]->team!=turn) continue;
-      
-      static int origin=index_to_int(j/8, j%8);
-      
-      if ((isEnpassant=checkEnpassant(origin, attack_pos))) {
-        captured_piece=positions[rank_index(origin)][file_index(attack_pos)];
-        positions[rank_index(attack_pos)][file_index(attack_pos)]
-        = positions[rank_index(origin)][file_index(origin)];
-        positions[rank_index(origin)][file_index(attack_pos)]=nullptr;
-        positions[rank_index(origin)][file_index(origin)]=nullptr;
-      } if (!positions[rank_index(origin)][file_index(origin)]
-            ->isvalid(origin, attack_pos, this)) {
-        continue;
-      } else {
-        captured_piece
-        =positions[rank_index(attack_pos)][file_index(attack_pos)];
-        positions[rank_index(attack_pos)][file_index(attack_pos)]
-        = positions[rank_index(origin)][file_index(origin)];
-        positions[rank_index(origin)][file_index(origin)]=nullptr;
-      }
-      if (ischeck(turn)) {
-        undo(origin, attack_pos, turn, isEnpassant);
-        en_passant=tmp_enpassant;
-      } else {
-        undo(origin, attack_pos, turn, isEnpassant);
-        en_passant=tmp_enpassant;
-        return false;
-      }
-    }
+    r_ap= i%8; f_ap = i/8;
+    if (positions[r_ap][f_ap]&&positions[r_ap][f_ap]->team==turn) continue;
+    attack_pos=index_to_int(f_ap, r_ap);
+    if (!legalAttack(attack_pos, turn?white:black)) return false;
   }
   return true;
 }
 
 void ChessBoard::promote_pawn(char const* target) {
-  if ((*positions[rank_index(target)][file_index(target)]=="Pawn") &&
+  if ((*positions[rIndex(target)][fIndex(target)]=="Pawn") &&
       target[1]==(turn ? '8' : '1')) {
     cout<<"Pawn promotion available!"<<endl;
     
@@ -521,29 +518,29 @@ void ChessBoard::promote_pawn(char const* target) {
     }
     switch (piece) {
       case 'N':
-        delete positions[rank_index(target)][file_index(target)];
-        positions[rank_index(target)][file_index(target)] =
+        delete positions[rIndex(target)][fIndex(target)];
+        positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Knight(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Knight"<<endl;
         turn? black_check=ischeck(black):white_check=ischeck(white);
         return;
       case 'B':
-        delete positions[rank_index(target)][file_index(target)];
-        positions[rank_index(target)][file_index(target)] =
+        delete positions[rIndex(target)][fIndex(target)];
+        positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Bishop(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Bishop"<<endl;
         turn? black_check=ischeck(black):white_check=ischeck(white);
         return;
       case 'R':
-        delete positions[rank_index(target)][file_index(target)];
-        positions[rank_index(target)][file_index(target)] =
+        delete positions[rIndex(target)][fIndex(target)];
+        positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Rook(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Rook"<<endl;
         turn? black_check=ischeck(black):white_check=ischeck(white);
         return;
       default:
-        delete positions[rank_index(target)][file_index(target)];
-        positions[rank_index(target)][file_index(target)] =
+        delete positions[rIndex(target)][fIndex(target)];
+        positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Queen(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Queen"<<endl;
         turn? black_check=ischeck(black):white_check=ischeck(white);
@@ -554,23 +551,22 @@ void ChessBoard::promote_pawn(char const* target) {
 }
 
 void ChessBoard::undo(int origin, int target, Team t, bool isEnpassant) {
-  positions[rank_index(origin)][file_index(origin)]
-  = positions[rank_index(target)][file_index(target)];
+  positions[rIndex(origin)][fIndex(origin)]
+  = positions[rIndex(target)][fIndex(target)];
   // If the move wasn't en passant capture
   if (!isEnpassant) {
-    positions[rank_index(target)][file_index(target)]=captured_piece;
+    positions[rIndex(target)][fIndex(target)]=captured_piece;
     // If the King has moved, update the King's position
     if (target==(t ? whiteKing : blackKing)) {
       (turn ? whiteKing = origin : blackKing = origin);
     }
-    
     captured_piece = nullptr;
     (t ? white_check=ischeck(white) : black_check=ischeck(black));
     return;
   }
   // Regular moves (Castling has its own internal legality check)
-  positions[rank_index(target)][file_index(target)]=nullptr;
-  positions[rank_index(origin)][file_index(target)]=captured_piece;
+  positions[rIndex(target)][fIndex(target)]=nullptr;
+  positions[rIndex(origin)][fIndex(target)]=captured_piece;
   captured_piece = nullptr;
   (t ? white_check=ischeck(white) : black_check=ischeck(black));
   return;
@@ -582,7 +578,7 @@ void ChessBoard::resetBoard() {
   white_check=0;
   blackKing=pos_to_int("E8");
   whiteKing=pos_to_int("E1");
-  check_causer=NULL;
+  checker=NULL;
   en_passant=NULL;
   turn=white;
   
@@ -634,7 +630,7 @@ void ChessBoard::setupPieces() {
 void ChessBoard::messageOutput(char const *origin, char const* target,
                                bool capture, bool enpassant, bool castling) {
   cout<<(turn ? "White's " : "Black's ");
-  cout>>*positions[rank_index(target)][file_index(target)];
+  cout>>*positions[rIndex(target)][fIndex(target)];
   cout<<" moves from "<<origin<<" to "<<target;
   
   if (capture) {

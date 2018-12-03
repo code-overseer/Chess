@@ -17,6 +17,7 @@ Chesspiece::~Chesspiece() {
 }
 
 bool King::isvalid(int origin, int target, ChessBoard* cb) {
+  // Check if the input is valid; A=10, 1=1 => A1 = 11; H=80, 8=8 => H8 = 88
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
   
   if (abs(target-origin)==9||abs(target-origin)==11||
@@ -132,9 +133,9 @@ bool Pawn::isvalid(int origin, int target, ChessBoard* cb) {
   
   if (target-origin==(team ? 2:-2)) {
     if (!first_move_made) {
-      if (!cb->positions[rank_index(target)][file_index(target)] &&
-          !cb->positions[rank_index(origin+(team ? 1:-1))]
-            [file_index(origin+(team ? 1:-1))]) {
+      if (!cb->positions[rIndex(target)][fIndex(target)] &&
+          !cb->positions[rIndex(origin+(team ? 1:-1))]
+            [fIndex(origin+(team ? 1:-1))]) {
           return true;
       }
     }
@@ -142,16 +143,16 @@ bool Pawn::isvalid(int origin, int target, ChessBoard* cb) {
   }
   
   if (target-origin==(team ? 1:-1)) {
-    if (!cb->positions[rank_index(target)][file_index(target)]) {
+    if (!cb->positions[rIndex(target)][fIndex(target)]) {
       return true;
     }
     return false;
   }
   
   if ((target-origin==(team ? 11:9)) || (target-origin==(team ? -9:-11))) {
-    if (!cb->positions[rank_index(target)][file_index(target)]) {
+    if (!cb->positions[rIndex(target)][fIndex(target)]) {
       return false;
-    } else if (cb->positions[rank_index(target)][file_index(target)]->team!=team) {
+    } else if (cb->positions[rIndex(target)][fIndex(target)]->team!=team) {
       return true;
     }
   }

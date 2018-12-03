@@ -10,7 +10,7 @@ private:
   // Data member
   /* An array containing the number of times a piece has been at a
    particular position */
-  unsigned short num_at_position[MAX_RANK][MAX_FILE];
+  unsigned short num_at_position[8][8];
 
 protected:
   /*
