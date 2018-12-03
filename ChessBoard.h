@@ -70,16 +70,18 @@ private:
    */
   bool checkStalemate();
   /*
-   canAttack(char const* target, Team t)
-   * Function to check if ANY piece in Team 't' can attack/move to
-   a target position
+   canAttack(char const* target, Team t, bool pawn)
+   * Function to check if ANY piece in Team 't' can *attack* a target position
+   * The pawn boolean is a flag, set true to include pawn attacking the target,
+   which will check for the appropriate diagonal of the target for pawns of
+   Team 't', set to false to disable this.
    
-   * Returns a boolean value, true if the move is possible and false otherwise
+   * Returns a boolean value, true if the attack is possible and false otherwise
    
    * Note: This function does NOT change the positions of the pieces,
    it is only a check
    */
-  int canAttack(int target, Team t);
+  int canAttack(int target, Team t, bool pawn);
   /*
    submitMove_exceptions(int status, char const* origin, char const* target);
    * Function used to handle exceptions in the submitMove member function

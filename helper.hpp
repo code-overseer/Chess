@@ -13,6 +13,7 @@
 #define ILLEGAL_MOVE 6
 #define STALEMATE 7
 #define CHECKMATE 1
+#define END_GAME 0
 // Max number of files
 int const MAX_FILE=8;
 // Max number of ranks

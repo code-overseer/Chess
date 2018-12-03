@@ -1,11 +1,11 @@
-#include "chessboard.hpp"
+#include "ChessBoard.h"
 #include <iostream>
 
 using namespace std;
 
 int main() {
   cout<<"A new chess game is started!"<<endl<<endl;
-  Chessboard* board = new Chessboard;
+  ChessBoard* board = new ChessBoard;
   
   board->display_board();
   char piece[3];
