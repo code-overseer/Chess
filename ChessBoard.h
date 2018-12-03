@@ -12,11 +12,11 @@ private:
   /*
    ischeck(Team t)
    * Function to check if Team t is in check
-   * t_king is a hypothetical king position (defaulted to NULL which will set
+   * t_king is a hypothetical king position (defaulted to 0 which will set
    the actual King position within the function)
    * returns a boolean value, true if 't' is in check and false otherwise
    */
-  bool ischeck(Team t, int t_king=NULL);
+  bool ischeck(Team t, int t_king=0);
   /*
    ischeckmate(Team t)
    * Function to check if Team t is in checkmate
@@ -197,9 +197,9 @@ private:
   /* Temporarily stores captured piece */
   Chesspiece* captured_piece=nullptr;
   /* Position of a piece that can attack the King */
-  int checker=NULL;
+  int checker=0;
   /* Position of a pawn that can be captured by en passant */
-  int en_passant=NULL;
+  int en_passant=0;
 public:
   /*
    submitMove(char const* org, char const* tgt)

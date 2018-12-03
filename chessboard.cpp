@@ -77,7 +77,7 @@ int ChessBoard::canAttack(int target, Team t) {
       }
     }
   }
-  return NULL;
+  return 0;
 }
 
 int ChessBoard::submitMove(char const* origin, char const* target) {
@@ -104,7 +104,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       = positions[rIndex(org)][fIndex(org)];
       positions[rIndex(org)][fIndex(tgt)]=nullptr;
       positions[rIndex(org)][fIndex(org)]=nullptr;
-      en_passant=NULL;
+      en_passant=0;
     } else if ((isCastling=checkCastling(org, tgt))) {
       // This move will always be legal
       // checkCastling has an internal legality check
@@ -364,7 +364,7 @@ bool ChessBoard::ischeckmate(Team t) {
             static int tmp_checker = checker;
             static Chesspiece* temp=positions[rIndex(checker)][fIndex(checker)];
             positions[rIndex(checker)][fIndex(checker)]=nullptr;
-            checker=NULL;
+            checker=0;
             /* Temporarily remove checker from its position to see if the King
              cen capture checker if it were to stop one position away */
             if (!ischeck(t)) count++;
@@ -390,8 +390,8 @@ bool ChessBoard::checkCastling(int origin, int target) {
     return false;
   
   
-  int rook=NULL;
-  int kings_cross=NULL;
+  int rook=0;
+  int kings_cross=0;
   if (target/10+'A'=='G') {
     rook=pos_to_int(turn ? "H1": "H8");
     kings_cross=pos_to_int(turn ? "F1":"F8");
@@ -435,8 +435,8 @@ bool ChessBoard::checkEnpassant(int origin, int target) {
   int captured = en_passant;
   int const rank5_white = 4;
   int const rank5_black = 3;
-  // Set to NULL so en passant capture on this pawn is no longer available
-  en_passant=NULL;
+  // Set to 0 so en passant capture on this pawn is no longer available
+  en_passant=0;
   
   // Capturing pawn on fifth rank
   if (rIndex(origin) != (turn ? rank5_white : rank5_black)) return false;
@@ -464,7 +464,7 @@ bool ChessBoard::checkStalemate() {
   
   int const king_moves_list[8]={1,-1,10,-10,11,-11,9,-9};
   int king_pos=(turn?whiteKing:blackKing);
-  int attack_pos=NULL;
+  int attack_pos=0;
   int total=0, own_piece=0;
   // Check if King is stuck
   for (int j =0; j<8; j++) {
@@ -503,7 +503,7 @@ void ChessBoard::promote_pawn(char const* target) {
       target[1]==(turn ? '8' : '1')) {
     cout<<"Pawn promotion available!"<<endl;
     
-    char piece=NULL;
+    char piece='\0';
     cout<<"Enter 'N' for Knight, 'B' for Bishop, 'R' for Rook; ";
     cout<<"'Q' for Queen"<<endl;
     while (piece!='Q' && piece!='B' && piece!='R' && piece!='N') {
@@ -578,8 +578,8 @@ void ChessBoard::resetBoard() {
   white_check=0;
   blackKing=pos_to_int("E8");
   whiteKing=pos_to_int("E1");
-  checker=NULL;
-  en_passant=NULL;
+  checker=0;
+  en_passant=0;
   turn=white;
   
   for (int r=0; r<8; r++) {
@@ -663,7 +663,7 @@ void ChessBoard::ask_for_draw(int num, int flag) {
   }
   cout<<"Do you want to call a draw and reset the board?"<<endl;
   cout<<"('y' to reset and 'n' to continue game)"<<endl;
-  char ans=NULL;
+  char ans='\0';
   while (ans!='y' && ans!='n') {
     if (ans) {
       cerr<<"Invalid input!"<<endl;
