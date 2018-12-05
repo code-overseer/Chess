@@ -1,10 +1,29 @@
-chess: ChessMain.o chesspiece.o chessboard.o helper.o
-	g++ -g -Wall ChessMain.o chesspiece.o chessboard.o helper.o -o chess
-chesspiece.o: chesspiece.cpp helper.hpp ChessBoard.h chesspiece.hpp
-	g++ -g -Wall chesspiece.cpp -c
-chessboard.o: chessboard.cpp helper.hpp ChessBoard.h chesspiece.hpp
-	g++ -g -Wall chessboard.cpp -c
-ChessMain.o: ChessMain.cpp helper.hpp ChessBoard.h chesspiece.hpp
-	g++ -g -Wall ChessMain.cpp -c
-helper.o: helper.cpp helper.hpp ChessBoard.h chesspiece.hpp
-	g++ -g -Wall helper.cpp -c
+HEADER=ChessPiece.hpp ChessBoard.h helper.hpp King.hpp Queen.hpp Bishop.hpp Knight.hpp Rook.hpp Pawn.hpp
+
+COMPILER=c++
+
+OPTIONS=-g -Wall
+
+chess: ChessMain.o ChessPiece.o ChessBoard.o helper.o King.o Queen.o Bishop.o Knight.o Rook.o Pawn.o
+	$(COMPILER) -g -Wall ChessMain.o chesspiece.o chessboard.o helper.o King.o Queen.o Bishop.o Knight.o Rook.o Pawn.o -o chess
+
+ChessMain.o: ChessMain.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) ChessMain.cpp -c
+ChessPiece.o: ChessPiece.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) ChessPiece.cpp -c
+ChessBoard.o: ChessBoard.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) ChessBoard.cpp -c
+helper.o: helper.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) helper.cpp -c
+King.o: King.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) King.cpp -c
+Queen.o: Queen.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) Queen.cpp -c
+Bishop.o: Bishop.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) Bishop.cpp -c
+Knight.o: Knight.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) Knight.cpp -c
+Rook.o: Rook.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) Rook.cpp -c
+Pawn.o: Pawn.cpp $(HEADER)
+	$(COMPILER) $(OPTIONS) Pawn.cpp -c

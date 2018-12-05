@@ -2,7 +2,7 @@
 #define ChessBoard_hpp
 
 #include "helper.hpp"
-#include "chesspiece.hpp"
+#include "ChessPiece.hpp"
 
 int const THREEFOLD = 3;
 int const FIFTY = 50;
@@ -12,20 +12,23 @@ private:
   /*
    ischeck(Team t)
    * Function to check if Team t is in check
-   * t_king is a hypothetical king position (defaulted to 0 which will set
-   the actual King position within the function)
-   * returns a boolean value, true if 't' is in check and false otherwise
+   
+   * returns an integer value, if 't' is in check returns the piece attacking
+   the king and 0 otherwise
    */
-  int isCheck(Team t);
+  int isCheck(Team t) const;
+  
   /*
-   ischeckmate(Team t)
-   * Function to check if Team t is in checkmate
-   * returns a boolean value, true if 't' is in checkmate and false otherwise
+   isGameOver(Team t)
+   * Function to check if Team t is in checkmate or the game is in stalemate
+   by checking if Team t has any more legal moves
+   * returns a boolean value, true if the game is over and false otherwise
    */
-  bool isCheckmate(Team t);
+  bool isGameOver(Team t);
+  
   /*
-   checkCastling(const char *origin, const char *target)
-   * Function to check if castling from position origin to target is possible
+   checkCastling(const char *origin, const char *target, Team t)
+   * Function to check if Team t castling from position origin to target is possible
    * Checks through all the requirements:
    * 1. The king and the chosen rook are on the player's first rank.[3]
    * 2. Neither the king nor the chosen rook has previously moved.
@@ -37,14 +40,13 @@ private:
    
    * Returns a boolean value, true if the move is possible and false otherwise
    
-   * Note: This function does NOT change the positions of the pieces,
-   it is only a check
-   * Note: This check inherently checks for legality
+   * Note: This function inherently checks for legality
    */
-  bool checkCastling(int origin, int target);
+  bool isCastling(int origin, int target, Team t) const;
+  
   /*
-   checkEnpassant(const char *origin, const char *target);
-   * Function to check if the en passant capture by moving a pawn from
+   checkEnpassant(const char *origin, const char *target, Team t);
+   * Function to check if the en passant capture by moving a Team t pawn from
    origin to target is possible
    * Checks through all the requirements:
    * 1. The capturing pawn must be on its fifth rank
@@ -59,40 +61,47 @@ private:
    * Note: This function does NOT change the positions of the pieces,
    it is only a check
    */
-  bool checkEnpassant(int origin, int target);
-  /*
-   checkStalemate();
-   * Function to check if the board is at a stalemate
-   * This is called when too many illegal moves have been detected in a row
-   when the player is not in check
-   * First by checking if the King is stuck in place
-   * followed by checking every other piece for any other legal moves
-   
-   * Returns a boolean value, true if it is a stalemate and false otherwise
-   */
-  bool checkStalemate();
+  bool isEnpassant(int origin, int target, Team t) const;
+  
   /*
    canAttack(char const* target, Team t, bool pawn)
-   * Function to check if ANY piece in Team 't' can attack/capture a target position regardless of legality (putting own king in check)
-   * This function checks for attacks/capture not movement, so pawn diagonals
+   * Function to check if ANY piece in Team 't' can capture a target position
+   regardless of legality (putting own king in check)
+   * This function checks for capture not movement, so pawn diagonals
    are checked
    * Returns an integer value representing the position of the first attacker
    found, 0 otherwise
-   
    */
-  int isValid(int target, Team t);
+  int canAttack(int target, Team t) const;
+  
   /*
-   legalAttack(int target, Team t)
-   * Function to check if ANY piece in Team 't' can *attack* a target position
-   regardless of legality (putting own king in check)
+   isLegal(int origin, int target, Team t, bool alwaysUndo=false)
+   * Function to check if a piece in Team 't' at origin can move to/attack a
+   target position legally
+   * This is done by moving the piece to the target and checking for legality
+   with the isCheck function
+   * alwaysUndo is a flag; set to true if any move made regardless of legality
+   is to be undone, set to false if only illegal moves is to be undone
    
-   * Returns a boolean value, true if the attack is legal and possible and
-   false otherwise
-   
-   * Note: This function does NOT change the positions of the pieces,
-   it undos the changes after checking for legality
+   * Returns an integer value; the origin position is returned if the
+   attack/movement is legal and 0 otherwise
    */
-  bool isLegal(int target, Team t);
+  int isLegal(int origin, int target, Team t, bool alwaysUndo=false);
+  
+  /*
+   isLegal(int target, Team t)
+   * Overloaded function to check if ANY piece in Team 't' can move to/attack a
+   target position legally
+   * This is done by looping isLegal(int origin, int target, Team t, true) for
+   every piece in Team t
+   
+   * Returns an integer value; the origin position is returned if the attack
+   is legal and possible and 0 otherwise
+   
+   * Note: This function undos any movement after checking for legality
+   */
+  int isLegal(int target, Team t);
+  
   /*
    submitMove_exceptions(int status, char const* origin, char const* target);
    * Function used to handle exceptions in the submitMove member function
@@ -109,13 +118,9 @@ private:
    * ILLEGAL_MOVE 6: The move made resulted in putting one's self in check
    * STALEMATE 7: Stalemate detected, no legal moves available
    * CHECKMATE 1: Checkmate
-   
-   * Note: STALEMATE is a special case of ILLEGAL MOVE, when at least 3 illegal
-   moves have been made in a row in the same turn, the program will ask if the
-   player would like to check for a stalemate, if it is true, then it will
-   return STALEMATE
    */
-  int submitMove_exceptions(int status, char const *origin, char const *target);
+  int submitMoveExceptions(int status, char const *origin, char const *target)
+  const;
   
   /*
    undo(char const* origin, char const* target, Team t, bool isEnpassant)
@@ -139,7 +144,7 @@ private:
    
    * No return value
    */
-  void promote_pawn(char const* target);
+  void promotePawn(char const* target);
   /*
    setupPieces()
    
@@ -164,12 +169,12 @@ private:
    * No return value
    */
   void messageOutput(char const *origin, char const *target,
-                     bool capture, bool enpassant, bool castling);
+                     bool capture, bool enpassant, bool castling) const;
   
   /*
-   ask_for_draw(int num, int flag);
+   drawNotification(int num, int flag);
    
-   * Function used to ask the player if they would agree to a draw
+   * Function used to notify the players a draw is possible
    * Only called when fifty or more moves have been made without a capture or a
    piece moves to the same position 3 or more times
    
@@ -179,15 +184,46 @@ private:
    
    * No return value
    */
-  void ask_for_draw(int num, int flag);
+  void drawNotification(int num, int flag) const;
+  /*
+   pos_to_int(char const* pos) const;
+   Convert the chess positions into the integer format:
+   Example:
+   A1 -> 11;
+   D4 -> 44;
+   H7-> 87
+   */
+  int pos_to_int(char const* pos) const;
+  /*
+   Gets the corresponding row (rank) index for the positions array from chess
+   positions
+   Example:
+   B1 -> 21 -> rIndexChar("B1") = 1-1=0;
+   D4 -> 44 -> rIndexChar("D1") = 4-1=3;
+   H7 -> 87 -> rIndexChar("H7") = 7-1=6;
+   */
+  int rIndexChar(char const* position) const;
+  /*
+   Gets the corresponding column (file) index for the positions array from chess
+   positions
+   Example:
+   B1 -> 21 -> fIndexChar("B1") = 2-1=1;
+   D4 -> 44 -> fIndexChar("D4") = 4-1=3;
+   H7 -> 87 -> fIndexChar("H7") = 8-1=7;
+   */
+  int fIndexChar(char const* position) const;
+  /*
+   Gets the corresponding integer format for the array index input
+   Example:
+   B1 -> fIndexChar("B1")=1, rIndexChar("B1")=0 -> index_to_int(1,0)=21;
+   D4 -> fIndexChar("D4")=3, rIndexChar("D1")=3 -> index_to_int(3,3)=44;
+   H7 -> fIndexChar("H7")=7, rIndexChar("H7")=6 -> index_to_int(7,6)=87;
+   */
+  int index_to_int(int file, int rank) const;
   
   /* Data members */
   /* Number of turns since last capture */
   int turns_since_last_capture=0;
-  /* Is black in check? */
-  bool black_check=0;
-  /* Is white in check? */
-  bool white_check=0;
   /* Position of the black king as an integer */
   int blackKing=pos_to_int("E8");
   /* Position of the white king as an integer */
@@ -197,16 +233,27 @@ private:
   /* Position of a piece that can attack the King */
   int checker=0;
   /* Position of a pawn that can be captured by en passant */
-  int en_passant=0;
+  int epPawn=0;
   /* Whose turn is it */
   Team turn=white;
+  
 public:
   /*
    submitMove(char const* org, char const* tgt)
    * Called by the main function to make a move from the origin to target
+   * This is one of the only function that accepts a character array input of
+   positions
    
-   * Returns 0 if no exceptions raised otherwise it returns an integer value
-   depending on the exception raised
+   * Returns integer values:
+   INVALID_MOVE 2
+   NOT_MOVING 3
+   INVALID_INPUT 4
+   NO_PIECE_AT_POSITION 5
+   NOT_YOUR_TURN 6
+   ILLEGAL_MOVE 7
+   NEXT_TURN 9
+   END_GAME 0
+   
    */
   int submitMove(char const* org, char const* tgt);
   
@@ -214,7 +261,7 @@ public:
    display_board()
    * Displays the board using Unicode-8 symbols
    */
-  void display_board();
+  void displayBoard();
   
   /*
    resetBoard()
@@ -229,6 +276,8 @@ public:
   /*
    * An array of chesspiece pointers, points to nullptr if the position is
    empty and points to a piece otherwise
+   * Rank is the first dimension and file is the second i.e.
+   positions[rank][file]
    */
   std::array<std::array<Chesspiece*,8>,8> positions;
 };
