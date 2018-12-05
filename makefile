@@ -1,6 +1,6 @@
 HEADER=ChessPiece.hpp ChessBoard.h helper.hpp King.hpp Queen.hpp Bishop.hpp Knight.hpp Rook.hpp Pawn.hpp
 
-COMPILER=c++
+COMPILER=g++
 
 OPTIONS=-g -Wall
 
