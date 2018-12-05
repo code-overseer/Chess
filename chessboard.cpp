@@ -56,7 +56,7 @@ void ChessBoard::displayBoard() {
 
 int ChessBoard::canAttack(int target, Team t) const {
   // Check for pawn attackers
-  int pwn = target+(t?move::SW:move::NE);
+  int pwn = target+(t?-11:11);
   if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
       positions[rIndex(pwn)][fIndex(pwn)]) {
     if (*positions[rIndex(pwn)][fIndex(pwn)]=="Pawn" &&
@@ -64,7 +64,7 @@ int ChessBoard::canAttack(int target, Team t) const {
       return pwn;
     }
   }
-  pwn = target+(t?move::SE:move::NW);
+  pwn = target+(t?9:-9);
   if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
       positions[rIndex(pwn)][fIndex(pwn)]) {
     if (*positions[rIndex(pwn)][fIndex(pwn)]=="Pawn" &&
