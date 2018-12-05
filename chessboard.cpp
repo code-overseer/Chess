@@ -190,6 +190,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     } else {
       turns_since_last_capture++;
     }
+    
     // If the move was not castling or enpassant, check for pawn promotion
     if (!castling && !enpassant) {
       promotePawn(target);
