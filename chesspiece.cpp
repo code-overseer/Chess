@@ -1,5 +1,4 @@
 #include "ChessBoard.h"
-#include "ChessPiece.hpp"
 
 using namespace std;
 
