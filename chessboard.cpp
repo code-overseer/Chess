@@ -49,7 +49,7 @@ void ChessBoard::display_board() {
   cout<<endl;
 }
 
-int ChessBoard::canAttack(int target, Team t) {
+int ChessBoard::isValid(int target, Team t) {
   // Check for pawn attackers
   int pwn = target+(t?-11:11);
   if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
@@ -80,6 +80,42 @@ int ChessBoard::canAttack(int target, Team t) {
   return 0;
 }
 
+bool ChessBoard::isLegal(int target, Team t) {
+  int origin=0;
+  int r_t=rIndex(target), f_t=fIndex(target);
+  bool isEnpassant=false;
+  // tmp storage
+  int tmp_enpassant = en_passant;
+  for (int r_o=0; r_o<8; r_o++) {
+    for (int f_o=0; f_o<8; f_o++) {
+      origin = index_to_int(f_o, r_o);
+      if (!positions[r_o][f_o]||positions[r_o][f_o]->team!=t) continue;
+      
+      if ((isEnpassant=checkEnpassant(origin, target))) {
+        captured_piece = positions[r_o][f_t];
+        positions[r_t][f_t] = positions[r_o][f_o];
+        positions[r_o][f_t]=nullptr;
+        positions[r_o][f_o]=nullptr;
+      } if (!positions[r_o][f_o]->isvalid(origin, target, this)) {
+        continue;
+      } else {
+        captured_piece = positions[r_t][f_t];
+        positions[r_t][f_t] = positions[r_o][f_o];
+        positions[r_o][f_o]=nullptr;
+      }
+      //Has the king moved? If so, update the King's position (needed for isCheck)
+      if (origin==(t ? whiteKing : blackKing)) {
+        (t ? whiteKing = target : blackKing = target);
+      }
+      bool check_cond = isCheck(t);
+      undo(origin, target, t, isEnpassant);
+      en_passant=tmp_enpassant;
+      if (!check_cond) return true;
+    }
+  }
+  return false;
+}
+
 int ChessBoard::submitMove(char const* origin, char const* target) {
   try {
     bool isCapture=false;
@@ -91,7 +127,9 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     if (tgt/10<1 || tgt/10>8 || tgt%10<1 || tgt%10>8 ||
         org/10<1 || org/10>8 || org%10<1 || org%10>8) {
       throw INVALID_INPUT;
-    } else if (!positions[rIndex(org)][fIndex(org)]) {
+    }
+    
+    if (!positions[rIndex(org)][fIndex(org)]) {
       throw NO_PIECE_AT_POSITION;
     } else if (positions[rIndex(org)][fIndex(org)]->team!=turn) {
       throw NOT_YOUR_TURN;
@@ -139,12 +177,12 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       if (captured_piece) isCapture=true;
     }
     
-    //Has the king moved? If so, update the King's position (needed for ischeck)
+    //Has the king moved? If so, update the King's position (needed for isCheck)
     if (org==(turn ? whiteKing : blackKing)) {
       (turn ? whiteKing = tgt : blackKing = tgt);
     }
-    white_check=ischeck(white); // Is white in check?
-    black_check=ischeck(black); // Is black in check?
+    white_check=isCheck(white); // Is white in check?
+    black_check=isCheck(black); // Is black in check?
     
     // Cannot be in check after moving, if illegal, undo move
     if (turn ? white_check : black_check) {
@@ -170,7 +208,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       turns_since_last_capture=0;
     }
     // Checkmate
-    if ((turn ? black_check : white_check)&&ischeckmate(turn ? black : white)) {
+    if ((turn ? black_check : white_check)&&isCheckmate(turn ? black : white)) {
       throw CHECKMATE;
     }
     // If in Check, output message
@@ -247,56 +285,17 @@ int ChessBoard::submitMove_exceptions(int status, char const* origin,
   }
 }
 
-bool ChessBoard::ischeck(Team t, int t_king) {
-  if (!t_king) t_king = (t ? whiteKing:blackKing);
-  checker=canAttack(t_king, t?black:white);
-  if (checker) return true;
-  return false;
+int ChessBoard::isCheck(Team t) {
+  return isValid(t ? whiteKing:blackKing, t?black:white);;
 }
 
-bool ChessBoard::legalAttack(int target, Team t) {
-  int origin=0;
-  int r_t=rIndex(target), f_t=fIndex(target);
-  bool isEnpassant=false;
-  // tmp storage
-  int tmp_enpassant = en_passant;
-  for (int r_o=0; r_o<8; r_o++) {
-    for (int f_o=0; f_o<8; f_o++) {
-      origin = index_to_int(f_o, r_o);
-      if (!positions[r_o][f_o]||positions[r_o][f_o]->team!=t) continue;
-    
-      if ((isEnpassant=checkEnpassant(origin, target))) {
-        captured_piece = positions[r_o][f_t];
-        positions[r_t][f_t] = positions[r_o][f_o];
-        positions[r_o][f_t]=nullptr;
-        positions[r_o][f_o]=nullptr;
-      } if (!positions[r_o][f_o]->isvalid(origin, target, this)) {
-        continue;
-      } else {
-        captured_piece = positions[r_t][f_t];
-        positions[r_t][f_t] = positions[r_o][f_o];
-        positions[r_o][f_o]=nullptr;
-      }
-      if (ischeck(t,(origin==(t?whiteKing:blackKing))?target:0)) {
-        undo(origin, target, t, isEnpassant);
-        en_passant=tmp_enpassant;
-      } else {
-        undo(origin, target, t, isEnpassant);
-        en_passant=tmp_enpassant;
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool ChessBoard::ischeckmate(Team t) {
+bool ChessBoard::isCheckmate(Team t) {
   // t is the team that is in check (i.e. team that is losing)
   int attack_pos=checker;
   // If checker can be attacked LEGALLY by the team in check,
-  // checkmate is not achieved (cannot use canAttack)
+  // checkmate is not achieved (cannot use isValid)
   
-  if (!legalAttack(attack_pos, t?white:black)) return false;
+  if (isLegal(attack_pos, t?white:black)) return false;
   
   // 1->rank++; -1->rank--; 10->file++; -10->file--; 11->file++,rank++;
   // -11->file--,rank--; 9->file++,rank--; -9->file--,rank++
@@ -310,7 +309,7 @@ bool ChessBoard::ischeckmate(Team t) {
       continue;
     }
     // legality doesn't matter, King cannot put itself in check
-    if (!canAttack(attack_pos, t?black:white)) return false;
+    if (!isValid(attack_pos, t?black:white)) return false;
   }
   
   /*
@@ -367,12 +366,12 @@ bool ChessBoard::ischeckmate(Team t) {
             checker=0;
             /* Temporarily remove checker from its position to see if the King
              cen capture checker if it were to stop one position away */
-            if (!ischeck(t)) count++;
+            if (!isCheck(t)) count++;
             checker=tmp_checker;
             positions[rIndex(checker)][fIndex(checker)]=temp;
             temp=nullptr;
           } else {
-            if (!ischeck(t)) count++;
+            if (!isCheck(t)) count++;
           }
           undo(origin, attack_pos, t, false);
           if (count>1) return false;
@@ -422,8 +421,8 @@ bool ChessBoard::checkCastling(int origin, int target) {
   }
   // Does the king cross or stop at a position that can be attacked
   // legality doesn't matter, King cannot put itself in check
-  if (!canAttack(target, turn?black:white)||
-      !canAttack(kings_cross, turn?black:white)) return false;
+  if (!isValid(target, turn?black:white)||
+      !isValid(kings_cross, turn?black:white)) return false;
   
   return true;
 }
@@ -479,7 +478,7 @@ bool ChessBoard::checkStalemate() {
         continue;
       }
       // legality doesn't matter, King cannot put itself in check
-      if (!canAttack(attack_pos, turn?black:white)) return false;
+      if (!isValid(attack_pos, turn?black:white)) return false;
     }
   }
   
@@ -488,12 +487,12 @@ bool ChessBoard::checkStalemate() {
   /* If the King is stuck, check every other piece if there is any other legal
    move */
   // ap: attack position; o: origin
-  int r_ap=0, f_ap=0;
-  for (int i=0; i<64; i++) {
-    r_ap= i%8; f_ap = i/8;
-    if (positions[r_ap][f_ap]&&positions[r_ap][f_ap]->team==turn) continue;
-    attack_pos=index_to_int(f_ap, r_ap);
-    if (!legalAttack(attack_pos, turn?white:black)) return false;
+  for (int r_ap=0; r_ap<8; r_ap++) {
+    for (int f_ap=0; f_ap<8; f_ap++) {
+      if (positions[r_ap][f_ap]&&positions[r_ap][f_ap]->team==turn) continue;
+      attack_pos=index_to_int(f_ap, r_ap);
+      if (isLegal(attack_pos, turn?white:black)) return false;
+    }
   }
   return true;
 }
@@ -522,28 +521,28 @@ void ChessBoard::promote_pawn(char const* target) {
         positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Knight(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Knight"<<endl;
-        turn? black_check=ischeck(black):white_check=ischeck(white);
+        turn? black_check=isCheck(black):white_check=isCheck(white);
         return;
       case 'B':
         delete positions[rIndex(target)][fIndex(target)];
         positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Bishop(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Bishop"<<endl;
-        turn? black_check=ischeck(black):white_check=ischeck(white);
+        turn? black_check=isCheck(black):white_check=isCheck(white);
         return;
       case 'R':
         delete positions[rIndex(target)][fIndex(target)];
         positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Rook(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Rook"<<endl;
-        turn? black_check=ischeck(black):white_check=ischeck(white);
+        turn? black_check=isCheck(black):white_check=isCheck(white);
         return;
       default:
         delete positions[rIndex(target)][fIndex(target)];
         positions[rIndex(target)][fIndex(target)] =
         new (nothrow) Queen(turn?white:black);
         cout<<"Pawn on "<<target<<" promoted to a Queen"<<endl;
-        turn? black_check=ischeck(black):white_check=ischeck(white);
+        turn? black_check=isCheck(black):white_check=isCheck(white);
         return;
     }
   }
@@ -561,14 +560,14 @@ void ChessBoard::undo(int origin, int target, Team t, bool isEnpassant) {
       (turn ? whiteKing = origin : blackKing = origin);
     }
     captured_piece = nullptr;
-    (t ? white_check=ischeck(white) : black_check=ischeck(black));
+    (t ? white_check=isCheck(white) : black_check=isCheck(black));
     return;
   }
   // Regular moves (Castling has its own internal legality check)
   positions[rIndex(target)][fIndex(target)]=nullptr;
   positions[rIndex(origin)][fIndex(target)]=captured_piece;
   captured_piece = nullptr;
-  (t ? white_check=ischeck(white) : black_check=ischeck(black));
+  (t ? white_check=isCheck(white) : black_check=isCheck(black));
   return;
 }
 

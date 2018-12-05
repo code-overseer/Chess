@@ -16,13 +16,13 @@ private:
    the actual King position within the function)
    * returns a boolean value, true if 't' is in check and false otherwise
    */
-  bool ischeck(Team t, int t_king=0);
+  int isCheck(Team t);
   /*
    ischeckmate(Team t)
    * Function to check if Team t is in checkmate
    * returns a boolean value, true if 't' is in checkmate and false otherwise
    */
-  bool ischeckmate(Team t);
+  bool isCheckmate(Team t);
   /*
    checkCastling(const char *origin, const char *target)
    * Function to check if castling from position origin to target is possible
@@ -73,16 +73,14 @@ private:
   bool checkStalemate();
   /*
    canAttack(char const* target, Team t, bool pawn)
-   * Function to check if ANY piece in Team 't' can *attack* a target position
-   regardless of legality (putting own king in check)
-   
+   * Function to check if ANY piece in Team 't' can attack/capture a target position regardless of legality (putting own king in check)
+   * This function checks for attacks/capture not movement, so pawn diagonals
+   are checked
    * Returns an integer value representing the position of the first attacker
    found, 0 otherwise
    
-   * Note: This function does NOT change the positions of the pieces,
-   it is only a check
    */
-  int canAttack(int target, Team t);
+  int isValid(int target, Team t);
   /*
    legalAttack(int target, Team t)
    * Function to check if ANY piece in Team 't' can *attack* a target position
@@ -94,7 +92,7 @@ private:
    * Note: This function does NOT change the positions of the pieces,
    it undos the changes after checking for legality
    */
-  bool legalAttack(int target, Team t);
+  bool isLegal(int target, Team t);
   /*
    submitMove_exceptions(int status, char const* origin, char const* target);
    * Function used to handle exceptions in the submitMove member function
@@ -200,6 +198,8 @@ private:
   int checker=0;
   /* Position of a pawn that can be captured by en passant */
   int en_passant=0;
+  /* Whose turn is it */
+  Team turn=white;
 public:
   /*
    submitMove(char const* org, char const* tgt)
@@ -231,8 +231,6 @@ public:
    empty and points to a piece otherwise
    */
   std::array<std::array<Chesspiece*,8>,8> positions;
-  /* Whose turn is it */
-  Team turn=white;
 };
 
 #endif /* chessboard_hpp */

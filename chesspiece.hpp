@@ -6,12 +6,6 @@
 class ChessBoard;
 /* Abstract Chesspiece class */
 class Chesspiece {
-private:
-  // Data member
-  /* An array containing the number of times a piece has been at a
-   particular position */
-  unsigned short num_at_position[8][8];
-
 protected:
   /*
    isvalid(int origin, int target, ChessBoard* cb)
@@ -22,11 +16,17 @@ protected:
    Note: this does not check for legality i.e. whether the move will put the
    piece's king in check
    */
-  virtual bool
-  isvalid(int origin, int target, ChessBoard* cb)=0;
+  virtual bool isvalid(int origin, int target, ChessBoard* cb)=0;
   // Data member
   /* Boolean value, true if first move has been made */
   bool first_move_made=0;
+  /* An array containing the number of times a piece has been at a
+   particular position */
+  unsigned short num_at_position[8][8];
+  /* Unicode Chess Characters */
+  char const* const symbol;
+  /* Piece name */
+  char const* const name;
   
 public:
   /* Constructor */
@@ -49,8 +49,6 @@ public:
   // Data members
   /* Piece colour, black or white */
   Team team;
-  char const* const symbol; // Unicode Chess Characters
-  char const* const name; // Piece name
 };
 
 /* King class */
