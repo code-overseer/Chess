@@ -16,23 +16,21 @@ Chesspiece::~Chesspiece() {
   return;
 }
 
-bool King::isvalid(int origin, int target, ChessBoard* cb) {
+bool King::isvalid(int origin, int target, ChessBoard const* cb) {
   // Check if the input is valid; A=10, 1=1 => A1 = 11; H=80, 8=8 => H8 = 88
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
-  
   if (abs(target-origin)==9||abs(target-origin)==11||
       abs(target-origin)==1||abs(target-origin)==10) {
-    if (!cb->positions[target%10-1][target/10-1]) {
-      return true;
-    } else if (cb->positions[target%10-1][target/10-1]->team!=team) {
+    // If target is empty or not own piece, move is valid
+    if (!cb->positions[rIndex(target)][fIndex(target)]||
+        cb->positions[rIndex(target)][fIndex(target)]->team!=team) {
       return true;
     }
   }
-  
   return false;
 }
 
-bool Queen::isvalid(int origin, int target, ChessBoard* cb) {
+bool Queen::isvalid(int origin, int target, ChessBoard const* cb) {
   int path=0;
   int dir=0;
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
@@ -51,18 +49,20 @@ bool Queen::isvalid(int origin, int target, ChessBoard* cb) {
   
   for (int i=1; i<=abs(target-origin)/dir; i++) {
     path = origin + i*dir*(target-origin<0?-1:1);
-    if (path/10<1 || path/10>8 || path%10<1 || path%10>8) break;
+    if (path/10<1 || path/10>8 || path%10<1 || path%10>8) break; //******
+    
     if (path==target) {
-      if (!cb->positions[path%10-1][path/10-1]) return true;
-      if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
+      if (!cb->positions[rIndex(path)][fIndex(path)]||
+          cb->positions[rIndex(path)][fIndex(path)]->team!=team)
+        return true;
       break;
     }
-    if (!!cb->positions[path%10-1][path/10-1]) break;
+    if (cb->positions[rIndex(path)][fIndex(path)]) break;
   }
   return false;
 }
 
-bool Bishop::isvalid(int origin, int target, ChessBoard* cb) {
+bool Bishop::isvalid(int origin, int target, ChessBoard const* cb) {
   int path=0;
   int dir=0;
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
@@ -83,33 +83,32 @@ bool Bishop::isvalid(int origin, int target, ChessBoard* cb) {
       if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
       break;
     }
-    if (!!cb->positions[path%10-1][path/10-1]) break;
+    if (cb->positions[path%10-1][path/10-1]) break;
   }
   return false;
 }
 
-bool Knight::isvalid(int origin, int target, ChessBoard* cb) {
+bool Knight::isvalid(int origin, int target, ChessBoard const* cb) {
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
   
   if (abs(target-origin)==8||abs(target-origin)==12||
       abs(target-origin)==19||abs(target-origin)==21) {
-    if (!cb->positions[target%10-1][target/10-1]) {
-      return true;
-    } else if (cb->positions[target%10-1][target/10-1]->team!=team) {
+    if (!cb->positions[target%10-1][target/10-1]||
+        cb->positions[target%10-1][target/10-1]->team!=team) {
       return true;
     }
   }
   return false;
 }
 
-bool Rook::isvalid(int origin, int target, ChessBoard* cb) {
+bool Rook::isvalid(int origin, int target, ChessBoard const* cb) {
   int path=0;
   int dir=0;
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
   
-  if (!(abs(target/10-origin/10))) {
+  if ((target/10==origin/10)&&(target%10!=origin%10)) {
     dir=1;  // rank++ or rank--
-  } else if (!(abs(target-origin)%10)) {
+  } else if ((target/10!=origin/10)&&(target%10==origin%10)) {
     dir=10; // file++ or file--
   } else {
     return false;
@@ -123,12 +122,12 @@ bool Rook::isvalid(int origin, int target, ChessBoard* cb) {
       if (cb->positions[path%10-1][path/10-1]->team!=team) return true;
       break;
     }
-    if (!!cb->positions[path%10-1][path/10-1]) break;
+    if (cb->positions[path%10-1][path/10-1]) break;
   }
   return false;
 }
 
-bool Pawn::isvalid(int origin, int target, ChessBoard* cb) {
+bool Pawn::isvalid(int origin, int target, ChessBoard const* cb) {
   if (target/10<1 || target/10>8 || target%10<1 || target%10>8) return false;
   
   if (target-origin==(team ? 2:-2)) {

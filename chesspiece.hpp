@@ -23,10 +23,13 @@ protected:
    piece's king in check
    */
   virtual bool
-  isvalid(int origin, int target, ChessBoard* cb)=0;
+  isvalid(int origin, int target, ChessBoard const* cb)=0;
   // Data member
   /* Boolean value, true if first move has been made */
   bool first_move_made=0;
+
+  char const* const symbol; // Unicode Chess Characters
+  char const* const name; // Piece name
   
 public:
   /* Constructor */
@@ -37,7 +40,7 @@ public:
    character array */
   bool operator==(char const* name) const;
   /* '!=' Operator overload to compare the name of the piece to another
-   character array */
+   character array i.e. Chesspiece=="King" */
   bool operator!=(char const* name) const;
   /* cout<<Operator overload to write the unicode symbol of the piece to the
    ostream */
@@ -46,12 +49,12 @@ public:
    ostream */
   friend std::ostream& operator >>(std::ostream&, Chesspiece&);
   friend ChessBoard;
-  // Data members
   /* Piece colour, black or white */
   Team team;
-  char const* const symbol; // Unicode Chess Characters
-  char const* const name; // Piece name
 };
+
+std::ostream& operator <<(std::ostream& o, Chesspiece& cp);
+std::ostream& operator >>(std::ostream& o, Chesspiece& cp);
 
 /* King class */
 class King : public Chesspiece {
@@ -61,8 +64,9 @@ public:
 private:
   /* Overriden function for King moves;
    single file, rank or diagonal movement */
-  bool isvalid(int origin, int target, ChessBoard* cb=nullptr) override;
+  bool isvalid(int origin, int target, ChessBoard const* cb) override;
 };
+
 /* Queen class */
 class Queen : public Chesspiece {
 public:
@@ -71,8 +75,9 @@ public:
 private:
   /* Overriden function for Queen moves;
    across files, ranks or diagonals if not blocked */
-  bool isvalid(int origin, int target, ChessBoard* cb=nullptr) override;
+  bool isvalid(int origin, int target, ChessBoard const* cb) override;
 };
+
 /* Bishop class */
 class Bishop : public Chesspiece {
 public:
@@ -81,8 +86,9 @@ public:
 private:
   /* Overriden function for Bishop moves;
    across diagonals only if not blocked */
-  bool isvalid(int origin, int target, ChessBoard* cb=nullptr) override;
+  bool isvalid(int origin, int target, ChessBoard const* cb) override;
 };
+
 /* Knight class */
 class Knight : public Chesspiece {
 public:
@@ -91,8 +97,9 @@ public:
 private:
   /* Overriden function for Knight moves;
    L-shaped movement with 8 possible movements */
-  bool isvalid(int origin, int target, ChessBoard* cb=nullptr) override;
+  bool isvalid(int origin, int target, ChessBoard const* cb) override;
 };
+
 /* Rook class */
 class Rook : public Chesspiece {
 public:
@@ -101,8 +108,9 @@ public:
 private:
   /* Overriden function for Rook moves;
    across files, ranks if not blocked */
-  bool isvalid(int origin, int target, ChessBoard* cb=nullptr) override;
+  bool isvalid(int origin, int target, ChessBoard const* cb) override;
 };
+
 /* Pawn class */
 class Pawn : public Chesspiece {
 public:
@@ -114,11 +122,8 @@ private:
    double rank increase is possible for the first move
    captures diagonally in a single position forward
    */
-  bool isvalid(int origin, int target, ChessBoard* cb=nullptr) override;
+  bool isvalid(int origin, int target, ChessBoard const* cb) override;
 };
-
-std::ostream& operator <<(std::ostream& o, Chesspiece& cp);
-std::ostream& operator >>(std::ostream& o, Chesspiece& cp);
 
 #endif /* chesspiece_hpp */
 

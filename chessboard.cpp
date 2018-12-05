@@ -152,7 +152,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       throw ILLEGAL_MOVE;
     }
     
-    // Output move message
+    // Output message
     messageOutput(origin, target, isCapture, isEnpassant, isCastling);
     // Free memory
     if (isCapture||isEnpassant) {
@@ -185,8 +185,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     if (++positions[rIndex(tgt)][fIndex(tgt)]
         ->num_at_position[rIndex(tgt)][fIndex(tgt)]>=THREEFOLD) {
       ask_for_draw(positions[rIndex(tgt)][fIndex(tgt)]
-                   ->num_at_position[rIndex(tgt)][fIndex(tgt)],
-                   THREEFOLD);
+                   ->num_at_position[rIndex(tgt)][fIndex(tgt)],THREEFOLD);
     }
     // If the piece has been moved for the 1st time, first_move_made to true
     if (!positions[rIndex(tgt)][fIndex(tgt)]->first_move_made) {
@@ -254,7 +253,7 @@ bool ChessBoard::ischeck(Team t, int t_king) {
   return false;
 }
 
-bool ChessBoard::legalAttack(int target, Team t) {
+int ChessBoard::legalAttack(int target, Team t) {
   int origin=0;
   int r_t=rIndex(target), f_t=fIndex(target);
   bool isEnpassant=false;
@@ -315,7 +314,7 @@ bool ChessBoard::ischeckmate(Team t) {
   
   /*
    Checking for blocks
-   * If the one of the position on the attack path to the King can be legally
+   * If one of the position on the attack path to the King can be legally
    accessed by at least two pieces, checkmate is not achieved
    * Knight and pawn attacks are unblockable (pawn is only one position away
    while Knights can skip over pieces)
@@ -341,43 +340,27 @@ bool ChessBoard::ischeckmate(Team t) {
     for (int i=1; i<abs(distance)/direction; i++) {
       count=0;
       attack_pos += i*direction*(distance<0?-1:1);
-      if (attack_pos/10<1 || attack_pos/10>8 ||
-          attack_pos%10<1 || attack_pos%10>8) continue;
-      static int origin = 0;
-      for (int f=0; f<8; f++) {
-        for (int r=0; r<8; r++) {
-          if (!positions[r][f]||positions[r][f]->team!=t) continue;
-          origin = index_to_int(f, r);
-          if (!positions[r][f]->isvalid(origin, attack_pos, this)) {
-            continue;
-          } else {
-            // Try to move in the way
-            /* attack_pos will always be empty, since the piece must have a
-             clear path to the king for cause a check */
-            positions[rIndex(attack_pos)][fIndex(attack_pos)]
-            = positions[rIndex(origin)][fIndex(origin)];
-            positions[rIndex(origin)][fIndex(origin)]=nullptr;
-          }
-          
-          if (origin==(t ? whiteKing : blackKing)) {
-            (t ? whiteKing = attack_pos : blackKing = attack_pos);
-            static int tmp_checker = checker;
-            static Chesspiece* temp=positions[rIndex(checker)][fIndex(checker)];
-            positions[rIndex(checker)][fIndex(checker)]=nullptr;
-            checker=0;
-            /* Temporarily remove checker from its position to see if the King
-             cen capture checker if it were to stop one position away */
-            if (!ischeck(t)) count++;
-            checker=tmp_checker;
-            positions[rIndex(checker)][fIndex(checker)]=temp;
-            temp=nullptr;
-          } else {
-            if (!ischeck(t)) count++;
-          }
-          undo(origin, attack_pos, t, false);
-          if (count>1) return false;
-        }
-      }
+      /* Validity of attack_pos are handled in the piece's isvalid member
+       function */
+      static int first_piece=0;
+      static int second_piece=0;
+      static Chesspiece* tmp_holder=nullptr;
+      if (!(first_piece=legalAttack(attack_pos, t?white:black))) continue;
+      //else
+      tmp_holder=positions[rIndex(first_piece)][fIndex(first_piece)];
+      positions[rIndex(first_piece)][fIndex(first_piece)]=nullptr;
+      /* attack_pos will always be empty, since it is a path to the king from
+       the checker */
+      positions[rIndex(attack_pos)][fIndex(attack_pos)]=
+      positions[rIndex(checker)][fIndex(checker)];
+      positions[rIndex(checker)][fIndex(checker)]=nullptr;
+      second_piece=legalAttack(attack_pos, t?white:black);
+      /* Undo what I just did */ //*********
+      positions[rIndex(first_piece)][fIndex(first_piece)]=tmp_holder;
+      positions[rIndex(checker)][fIndex(checker)]=
+      positions[rIndex(attack_pos)][fIndex(attack_pos)];
+      positions[rIndex(attack_pos)][fIndex(attack_pos)]=nullptr;
+      if (!second_piece) continue;
     }
   }
   return true; // Checkmate

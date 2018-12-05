@@ -16,7 +16,7 @@ private:
    the actual King position within the function)
    * returns a boolean value, true if 't' is in check and false otherwise
    */
-  bool ischeck(Team t, int t_king=0);
+  int ischeck(Team t);
   /*
    ischeckmate(Team t)
    * Function to check if Team t is in checkmate
@@ -37,11 +37,9 @@ private:
    
    * Returns a boolean value, true if the move is possible and false otherwise
    
-   * Note: This function does NOT change the positions of the pieces,
-   it is only a check
    * Note: This check inherently checks for legality
    */
-  bool checkCastling(int origin, int target);
+  bool checkCastling(int origin, int target) const;
   /*
    checkEnpassant(const char *origin, const char *target);
    * Function to check if the en passant capture by moving a pawn from
@@ -67,34 +65,50 @@ private:
    when the player is not in check
    * First by checking if the King is stuck in place
    * followed by checking every other piece for any other legal moves
+   * This function will aslo set the en_passant data member to 0
+   (no en_passant piece)
    
    * Returns a boolean value, true if it is a stalemate and false otherwise
    */
   bool checkStalemate();
   /*
-   canAttack(char const* target, Team t, bool pawn)
+   canAttack(char const* target, Team t)
    * Function to check if ANY piece in Team 't' can *attack* a target position
    regardless of legality (putting own king in check)
    
-   * Returns an integer value representing the position of the first attacker
-   found, 0 otherwise
+   * Returns a integer value, if the attack is legal position of the attacker is
+   returned and 0 otherwise
    
    * Note: This function does NOT change the positions of the pieces,
    it is only a check
    */
-  int canAttack(int target, Team t);
+  int canAttack(int target, Team t) const;
   /*
-   legalAttack(int target, Team t)
-   * Function to check if ANY piece in Team 't' can *attack* a target position
-   regardless of legality (putting own king in check)
+   isLegal(int origin, int target, bool alwaysUndo=false)
+   * Function to check if a piece at origin  can attack a target
+   position legally
+   * This function moves the pieces into position before checking if it is legal
+   * It then undos the move made
+   * alwaysUndo flag is defaulted to false, set to true, to undo any moves made;
+   false flag only undos illegal moves
    
-   * Returns a boolean value, true if the attack is legal and possible and
-   false otherwise
+   * Returns a integer value, if the attack is legal position of the attacker is
+   returned and 0 otherwise
    
-   * Note: This function does NOT change the positions of the pieces,
-   it undos the changes after checking for legality
    */
-  bool legalAttack(int target, Team t);
+  int isLegal(int origin, int target);
+  /*
+   isLegal(int target, Team t)
+   * Function to check if ANY piece in Team 't' can attack a target position
+   legally
+   * This function moves the pieces into position before checking if it is legal
+   * It then undos the move made
+   
+   * Returns a integer value, if the attack is legal position of the attacker is
+   returned and 0 otherwise
+   
+   */
+  int legalAttack(int target, Team t);
   /*
    submitMove_exceptions(int status, char const* origin, char const* target);
    * Function used to handle exceptions in the submitMove member function
@@ -196,10 +210,12 @@ private:
   int whiteKing=pos_to_int("E1");
   /* Temporarily stores captured piece */
   Chesspiece* captured_piece=nullptr;
-  /* Position of a piece that can attack the King */
+  /* Position of a piece that can attack the King, 0 means no piece */
   int checker=0;
-  /* Position of a pawn that can be captured by en passant */
+  /* Position of a pawn that can be captured by en passant, 0 means no piece */
   int en_passant=0;
+  /* Whose turn is it */
+  Team turn=white;
 public:
   /*
    submitMove(char const* org, char const* tgt)
@@ -231,8 +247,6 @@ public:
    empty and points to a piece otherwise
    */
   std::array<std::array<Chesspiece*,8>,8> positions;
-  /* Whose turn is it */
-  Team turn=white;
 };
 
 #endif /* chessboard_hpp */

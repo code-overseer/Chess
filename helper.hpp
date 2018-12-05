@@ -16,7 +16,7 @@
 #define NEXT_TURN 8
 #define END_GAME 0
 
-/* Team "class" */
+/* Team */
 enum Team {black, white};
 
 /*
@@ -24,7 +24,7 @@ enum Team {black, white};
  Example:
  A1 -> 11;
  D4 -> 44;
- H7->87
+ H7 -> 87
  */
 int pos_to_int(char const* pos);
 /*

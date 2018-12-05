@@ -8,13 +8,6 @@ int pos_to_int(char const* pos) {
   return val;
 }
 
-void int_to_pos(int pos, char* position) {
-  position[0] = pos/10-1+'A';
-  position[1] = pos%10+'0';
-  position[2] = '\0';
-  return;
-}
-
 int rIndex(int pos) {
   return pos%10-1;
 }
