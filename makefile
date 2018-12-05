@@ -5,7 +5,7 @@ COMPILER=g++
 OPTIONS=-g -Wall
 
 chess: ChessMain.o ChessPiece.o ChessBoard.o helper.o King.o Queen.o Bishop.o Knight.o Rook.o Pawn.o
-	$(COMPILER) -g -Wall ChessMain.o chesspiece.o chessboard.o helper.o King.o Queen.o Bishop.o Knight.o Rook.o Pawn.o -o chess
+	$(COMPILER) -g -Wall ChessMain.o ChessPiece.o ChessBoard.o helper.o King.o Queen.o Bishop.o Knight.o Rook.o Pawn.o -o chess
 
 ChessMain.o: ChessMain.cpp $(HEADER)
 	$(COMPILER) $(OPTIONS) ChessMain.cpp -c
