@@ -179,7 +179,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     
     bool enpassant=isEnpassant(org, tgt, turn);
     bool castling=isCastling(org, tgt, turn);
-    bool capture=(captured_piece&&enpassant);
+    bool capture=(captured_piece&&!enpassant);
     // Output move message
     messageOutput(origin, target, capture, enpassant, castling);
     // If no capture increment the moves_since_last_capture, else reset to zero
