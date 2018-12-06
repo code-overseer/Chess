@@ -15,9 +15,17 @@ Chesspiece::~Chesspiece() {
   return;
 }
 
-bool Chesspiece::intCheck(int input) const {
+bool Chesspiece::intCheck(int input) {
   if (input/10<1 || input/10>8 || input%10<1 || input%10>8) return false;
   return true;
+}
+
+int Chesspiece::rIndex(int pos) {
+  return pos%10-1;
+}
+
+int Chesspiece::fIndex(int pos) {
+  return pos/10-1;
 }
 
 bool Chesspiece::pathCheck(int origin, int target, int direction,

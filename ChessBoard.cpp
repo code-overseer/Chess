@@ -59,17 +59,17 @@ int ChessBoard::canAttack(int target, Team t) const {
   // Check for pawn attackers
   int pwn = target+(t?move::SW:move::NE);
   if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
-      positions[rIndex(pwn)][fIndex(pwn)]) {
-    if (*positions[rIndex(pwn)][fIndex(pwn)]=="Pawn" &&
-        positions[rIndex(pwn)][fIndex(pwn)]->team==t) {
+      positions[Chesspiece::rIndex(pwn)][Chesspiece::fIndex(pwn)]) {
+    if (*positions[Chesspiece::rIndex(pwn)][Chesspiece::fIndex(pwn)]=="Pawn" &&
+        positions[Chesspiece::rIndex(pwn)][Chesspiece::fIndex(pwn)]->team==t) {
       return pwn;
     }
   }
   pwn = target+(t?move::SE:move::NW);
   if (pwn/10>=1 && pwn/10<=8 && pwn%10>=1 && pwn%10<=8 &&
-      positions[rIndex(pwn)][fIndex(pwn)]) {
-    if (*positions[rIndex(pwn)][fIndex(pwn)]=="Pawn" &&
-        positions[rIndex(pwn)][fIndex(pwn)]->team==t) {
+      positions[Chesspiece::rIndex(pwn)][Chesspiece::fIndex(pwn)]) {
+    if (*positions[Chesspiece::rIndex(pwn)][Chesspiece::fIndex(pwn)]=="Pawn" &&
+        positions[Chesspiece::rIndex(pwn)][Chesspiece::fIndex(pwn)]->team==t) {
       return pwn;
     }
   }
@@ -105,25 +105,30 @@ int ChessBoard::isLegal(int target, Team t) {
 int ChessBoard::isLegal(int origin, int target, Team t, bool alwaysUndo) {
   bool enpassant=false;
   
-  if (!positions[rIndex(origin)][fIndex(origin)]) {
+  if (!positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]) {
     throw NO_PIECE_AT_POSITION;
-  } else if (positions[rIndex(origin)][fIndex(origin)]->team!=t) {
+  } else if (positions[Chesspiece::rIndex(origin)]
+             [Chesspiece::fIndex(origin)]->team!=t) {
     throw NOT_YOUR_TURN;
   }
   // Making the move
   if ((enpassant=isEnpassant(origin, target, t))){
     // Captured piece is not deleted until the move is ensured to be legal
-    captured_piece=positions[rIndex(origin)][fIndex(target)];
-    positions[rIndex(target)][fIndex(target)]
-    = positions[rIndex(origin)][fIndex(origin)];
-    positions[rIndex(origin)][fIndex(target)]=nullptr;
-    positions[rIndex(origin)][fIndex(origin)]=nullptr;
+    captured_piece
+    = positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)];
+    
+    positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]
+    = positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)];
+    
+    positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)]=nullptr;
+    positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]=nullptr;
   } else if (isCastling(origin, target, t)) {
     // This move will always be legal
     // checkCastling has an internal legality check
-    positions[rIndex(target)][fIndex(target)]
-    = positions[rIndex(origin)][fIndex(origin)];
-    positions[rIndex(origin)][fIndex(origin)]=nullptr;
+    positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]
+    = positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)];
+    
+    positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]=nullptr;
     // if target file is 'G'
     if (target/10==7) {
       //H move to F
@@ -140,14 +145,15 @@ int ChessBoard::isLegal(int origin, int target, Team t, bool alwaysUndo) {
       positions[rIndexChar(t ? "A1": "A8")][fIndexChar(t ? "A1":"A8")]
       = nullptr;
     }
-  } else if (positions[rIndex(origin)][fIndex(origin)]
+  } else if (positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]
              ->isvalid(origin, target, this)) {
-    captured_piece=positions[rIndex(target)][fIndex(target)];
+    captured_piece
+    = positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)];
     
-    positions[rIndex(target)][fIndex(target)]
-    = positions[rIndex(origin)][fIndex(origin)];
+    positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]
+    = positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)];
     
-    positions[rIndex(origin)][fIndex(origin)]=nullptr;
+    positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]=nullptr;
   } else {
     throw INVALID_MOVE;
   }
@@ -198,16 +204,19 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     checker = isCheck(turn ? black : white);
     
     // If the piece has been moved for the 1st time, set first_move_made to true
-    if (!positions[rIndex(tgt)][fIndex(tgt)]->first_move_made) {
-      if (*positions[rIndex(tgt)][fIndex(tgt)]=="Pawn" &&
+    if (!positions[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]
+        ->first_move_made) {
+      if (*positions[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]=="Pawn"&&
           target[1]==(turn?'4':'5')) {
         // If pawn moves to fourth rank for the first move set epPawn to tgt
         epPawn=tgt;
       }
       // Increment number of times at original position
-      positions[rIndex(tgt)][fIndex(tgt)]
-      ->num_at_position[rIndex(org)][fIndex(org)]++;
-      positions[rIndex(tgt)][fIndex(tgt)]->first_move_made=true;
+      positions[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]
+      ->num_at_position[Chesspiece::rIndex(org)][Chesspiece::fIndex(org)]++;
+      
+      positions[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]
+      ->first_move_made=true;
     }
     // End of turn
     turn = turn ? black : white;
@@ -225,13 +234,15 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       drawNotification(turns_since_last_capture/2,FIFTY);
     }
     // Threefold repetition rule ask for draw
-    if (++positions[rIndex(tgt)][fIndex(tgt)]
-        ->num_at_position[rIndex(tgt)][fIndex(tgt)]>=THREEFOLD)
+    if (++positions[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]
+        ->num_at_position[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]
+        >=THREEFOLD)
     {
-      drawNotification(positions[rIndex(tgt)][fIndex(tgt)]
-                   ->num_at_position[rIndex(tgt)][fIndex(tgt)], THREEFOLD);
+      drawNotification
+      (positions[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)]
+       ->num_at_position[Chesspiece::rIndex(tgt)][Chesspiece::fIndex(tgt)],
+       THREEFOLD);
     }
-    
     return NEXT_TURN;
   } catch (int status) {
     return submitMoveExceptions(status, origin, target);
@@ -303,7 +314,7 @@ bool ChessBoard::isCastling(int origin, int target, Team t) const {
   int rook=0;
   int kings_cross=0;
   // Check if target file is 'G'
-  if (target/10==7) {
+  if (Chesspiece::fIndex(target)+'A'=='G') {
     rook=pos_to_int(t ? "H1": "H8");
     kings_cross=pos_to_int(t ? "F1":"F8");
   } else {
@@ -313,22 +324,24 @@ bool ChessBoard::isCastling(int origin, int target, Team t) const {
   
   // Not King or not Rook
   if (origin!=(t?whiteKing:blackKing)||
-      !positions[rIndex(rook)][fIndex(rook)]||
-      *positions[rIndex(rook)][fIndex(rook)]!="Rook")
+      !positions[Chesspiece::rIndex(rook)][Chesspiece::fIndex(rook)]||
+      *positions[Chesspiece::rIndex(rook)][Chesspiece::fIndex(rook)]!="Rook")
     return false;
   
   // Has the first move been made for the King and Rook
-  if (positions[rIndex(origin)][fIndex(origin)]->first_move_made ||
-      positions[rIndex(rook)][fIndex(rook)]->first_move_made)
+  if (positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]
+      ->first_move_made ||
+      positions[Chesspiece::rIndex(rook)][Chesspiece::fIndex(rook)]
+      ->first_move_made)
     return false;
   
   // King not in check
   if (isCheck(t)) return false;
   
   // Empty path
-  for (int i=1; i<abs(fIndex(rook)-fIndex(origin)); i++) {
-    if (positions[rIndex(origin)]
-        [fIndex(origin)+i*((fIndex(rook)-fIndex(origin))<0?-1:1)])
+  int dir = (Chesspiece::fIndex(target)+'A'=='G')?1:-1;
+  for (int i=1; i<(Chesspiece::fIndex(target)+'A'=='G')?3:4; i++) {
+    if (positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)+i*dir])
       return false;
   }
   // Does the king cross or stop at a position that can be attacked
@@ -348,16 +361,18 @@ bool ChessBoard::isEnpassant(int origin, int target, Team t) const {
   int const rank5_black = 3;
   
   // Capturing pawn on fifth rank
-  if (rIndex(origin) != (t ? rank5_white : rank5_black)) return false;
+  if (Chesspiece::rIndex(origin) != (t ? rank5_white : rank5_black)) return false;
   
   // Captured pawn on adjacent file
-  if (rIndex(captured)!=rIndex(origin) ||
-      fIndex(captured)!=fIndex(target))
+  if (Chesspiece::rIndex(captured)!=Chesspiece::rIndex(origin) ||
+      Chesspiece::fIndex(captured)!=Chesspiece::fIndex(target))
     return false;
   
   // Both pieces involved must be pawns
-  if (*positions[rIndex(origin)][fIndex(target)]!="Pawn" ||
-      *positions[rIndex(origin)][fIndex(origin)]!="Pawn")
+  if (*positions[Chesspiece::rIndex(origin)]
+      [Chesspiece::fIndex(target)]!="Pawn" ||
+      *positions[Chesspiece::rIndex(origin)]
+      [Chesspiece::fIndex(origin)]!="Pawn")
     return false;
   
   return true;
@@ -406,17 +421,21 @@ void ChessBoard::promotePawn(char const* target) {
 }
 
 void ChessBoard::undo(int origin, int target, Team t, bool isEnpassant) {
-  positions[rIndex(origin)][fIndex(origin)]
-  = positions[rIndex(target)][fIndex(target)];
+  positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]
+  = positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)];
   
   if (isEnpassant) {
-    positions[rIndex(target)][fIndex(target)]=nullptr;
-    positions[rIndex(origin)][fIndex(target)]=captured_piece;
+    positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]=nullptr;
+    
+    positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)]
+    = captured_piece;
+    
     captured_piece = nullptr;
     return;
   }
   // Regular moves (Castling is always legal if checkCastling returns true)
-  positions[rIndex(target)][fIndex(target)]=captured_piece;
+  positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]
+  = captured_piece;
   // If the King has moved, undo the King's position
   if (target==(t ? whiteKing : blackKing))
     (t ? whiteKing = origin : blackKing = origin);

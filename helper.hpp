@@ -16,25 +16,32 @@
 #define NEXT_TURN 9
 #define END_GAME 0
 
-/*
- Used by both the chessboard and chesspieces
- Gets the corresponding row (rank) index for the positions array from integer f
- ormat:
- Example:
- B1 -> 21 -> rIndex(21) = 1 - 1=0;
- D4 -> 44 -> rIndex(44) = 4 - 1=3;
- H7 -> 87 -> rIndex(87) = 7 - 1=6;
+/* Team */
+enum Team {black, white};
+
+/* The ChessBoard and Chesspiece class only deal with positions as integers, e.g.
+ B5 will be processed as the integer 25
+ H6 will be processed as the integer 86
+ Both the first and second digit should be between 1 and 8 only;
+ As such the movements of the piece are characterised as addition/subtraction,
+ A1 -> A2 increase in rank (North) is a +1 operation
+ A2 -> A1 decrease in rank (South) is -1
+ A1 -> B1 increase in file (East) is +10
+ B1 -> A1 decrease in file (West) is -10
+ A1 -> B2 Northeast direction is +11
+ B2 -> A1 Southwest direction is -11
+ B1 -> A2 Northwest direction is -9
+ A2 -> B1 Southeast direction is +9
  */
-int rIndex(int pos);
-/*
- Used by both the chessboard and chesspieces
- Gets the corresponding column (file) index for the positions array from integer
- format
- Example:
- B1 -> 21 -> fIndex(21) = 2 - 1=1;
- D4 -> 44 -> fIndex(44) = 4 - 1=3;
- H7 -> 87 -> fIndex(87) = 8 - 1=7;
- */
-int fIndex(int pos);
+namespace move {
+  int const N=1;
+  int const S=-1;
+  int const E=10;
+  int const W=-10;
+  int const NE=11;
+  int const NW=-9;
+  int const SE=9;
+  int const SW=-11;
+}
 
 #endif /* helper_hpp */
