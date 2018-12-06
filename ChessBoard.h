@@ -57,9 +57,6 @@ private:
    passant is lost
    
    * Returns a boolean value, true if the move is possible and false otherwise
-   
-   * Note: This function does NOT change the positions of the pieces,
-   it is only a check
    */
   bool isEnpassant(int origin, int target, Team t) const;
   
@@ -69,6 +66,7 @@ private:
    regardless of legality (putting own king in check)
    * This function checks for capture not movement, so pawn diagonals
    are checked
+   
    * Returns an integer value representing the position of the first attacker
    found, 0 otherwise
    */
@@ -78,21 +76,24 @@ private:
    isLegal(int origin, int target, Team t, bool alwaysUndo=false)
    * Function to check if a piece in Team 't' at origin can move to/attack a
    target position legally
+   * In this program legality is whether or not a move puts the King in check
    * This is done by moving the piece to the target and checking for legality
    with the isCheck function
+   * enpassant and castling are boolean values passed by reference to be
+   returned so that they may be used by the messageOutput function
    * alwaysUndo is a flag; set to true if any move made regardless of legality
    is to be undone, set to false if only illegal moves is to be undone
    
    * Returns an integer value; the origin position is returned if the
    attack/movement is legal and 0 otherwise
    */
-  int isLegal(int origin, int target, Team t, bool alwaysUndo=false);
-  
+  int isLegal(int origin, int target, Team t, bool &enpassant, bool &castling,
+              bool alwaysUndo=false);
   /*
    isLegal(int target, Team t)
    * Overloaded function to check if ANY piece in Team 't' can move to/attack a
    target position legally
-   * This is done by looping isLegal(int origin, int target, Team t, true) for
+   * This is done by looping isLegal(int origin, int target, Team t,...) for
    every piece in Team t
    
    * Returns an integer value; the origin position is returned if the attack
@@ -110,15 +111,18 @@ private:
    
    * Returns a integer value corresponding to the exception raised:
    
+   * CHECKMATE 1: Checkmate
    * INVALID_MOVE 2: The piece cannot move to the position either due to a block
    or the piece cannot move that way
-   * NOT_MOVING: Origin and target the same
+   * NOT_MOVING 3: Origin and target the same
    * INVALID_INPUT 4: Invalid position input detected
    * NO_PIECE_AT_POSITION 5: Origin position input refers to an empty position
    * NOT_YOUR_TURN 6: Piece from the wrong team is chosen
    * ILLEGAL_MOVE 7: The move made resulted in putting one's self in check
    * STALEMATE 8: Stalemate detected, no legal moves available
-   * CHECKMATE 1: Checkmate
+   * END_GAME 9: The game has ended, no more moves can be made
+   * ENOMEM: Insufficient memory to allocate a new Chesspiece object
+   
    */
   int submitMoveExceptions(int status, char const *origin, char const *target)
   const;
@@ -141,7 +145,15 @@ private:
    * Function that promotes the pawn located at target
    * Only called when a pawn has reached its 8th rank
    * Deletes the existing pawn piece and replaces it with promoted piece
-   * It will ask for a character input to select the pieces to promote to
+   * This function will by default promote the pawn to a queen
+   * To promote to a different piece, specify the piece's algerbraic notation
+   in upper case at the end of the target position for submit move:
+   Example:
+   cb->submitMove("B7", "C8N")
+   Output:
+   White's Pawn moves from B7 to C8 taking Black's Bishop
+   Pawn promotion!
+   White's Pawn at C8 has been promoted to a Knight!
    
    * No return value
    */
@@ -175,7 +187,7 @@ private:
   /*
    drawNotification(int num, int flag);
    
-   * Function used to notify the players a draw is possible
+   * Function used to notify the players a draw could be declared
    * Only called when fifty or more moves have been made without a capture or a
    piece moves to the same position 3 or more times
    
@@ -237,25 +249,34 @@ private:
   int epPawn=0;
   /* Whose turn is it */
   Team turn=white;
+  /* Is it the end of game? */
+  bool endGame=false;
+  /*No memory flag, prevents the game from starting or continuing*/
+  bool noMemory=false;
 public:
   /*
    submitMove(char const* org, char const* tgt)
    * Called by the main function to make a move from the origin to target
    * This is one of the only function that accepts a character array input of
    positions
+   * No errors would be raised as long as the first two characters of org and
+   tgt is a valid position
+   * A third character may be inputted for tgt when the submitted move results
+   in a pawn promotion to promote the pawn to a specific peice (see promotePawn)
    
    * Returns integer values:
-   INVALID_MOVE 2
-   NOT_MOVING 3
-   INVALID_INPUT 4
-   NO_PIECE_AT_POSITION 5
-   NOT_YOUR_TURN 6
-   ILLEGAL_MOVE 7
-   NEXT_TURN 9
-   END_GAME 0
+   * INVALID_MOVE 2: The piece cannot move to the position either due to a block
+   or the piece cannot move that way
+   * NOT_MOVING 3: Origin and target the same
+   * INVALID_INPUT 4: Invalid position input detected
+   * NO_PIECE_AT_POSITION 5: Origin position input refers to an empty position
+   * NOT_YOUR_TURN 6: Piece from the wrong team is chosen
+   * ILLEGAL_MOVE 7: The move made resulted in putting one's self in check
+   * END_GAME 9: The game has ended, no more moves can be made
+   * ENOMEM: Insufficient memory to allocate a new Chesspiece object
    
    */
-  int submitMove(char const* org, char const* tgt);
+  int submitMove(char const* origin, char const* target);
   
   /*
    display_board()

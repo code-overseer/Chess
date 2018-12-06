@@ -88,11 +88,14 @@ int ChessBoard::canAttack(int target, Team t) const {
 
 int ChessBoard::isLegal(int target, Team t) {
   int origin=0;
+  bool castling=false;
+  bool enpassant=false;
+  
   for (int r=0; r<8; r++) {
     for (int f=0; f<8; f++) {
       origin = index_to_int(f, r);
       try {
-        isLegal(origin,target,t,true);
+        isLegal(origin,target,t, enpassant, castling, true);
         return origin;
       } catch (int e) {
         continue;
@@ -102,8 +105,8 @@ int ChessBoard::isLegal(int target, Team t) {
   return false;
 }
 
-int ChessBoard::isLegal(int origin, int target, Team t, bool alwaysUndo) {
-  bool enpassant=false;
+int ChessBoard::isLegal(int origin, int target, Team t, bool &enpassant,
+                        bool &castling, bool alwaysUndo) {
   
   if (!positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]) {
     throw NO_PIECE_AT_POSITION;
@@ -122,7 +125,7 @@ int ChessBoard::isLegal(int origin, int target, Team t, bool alwaysUndo) {
     
     positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)]=nullptr;
     positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]=nullptr;
-  } else if (isCastling(origin, target, t)) {
+  } else if ((castling=isCastling(origin, target, t))) {
     // This move will always be legal
     // checkCastling has an internal legality check
     positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]
@@ -174,18 +177,20 @@ int ChessBoard::isLegal(int origin, int target, Team t, bool alwaysUndo) {
 
 int ChessBoard::submitMove(char const* origin, char const* target) {
   try {
+    if (noMemory) throw ENOMEM;
+    if (endGame) throw END_GAME;
     // pos_to_int function checks the origin and target arguments
     int org = pos_to_int(origin);
     int tgt = pos_to_int(target);
     if (org==tgt) throw NOT_MOVING;
+    bool enpassant=false;
+    bool castling=false;
     
-    isLegal(org, tgt, turn);
+    isLegal(org, tgt, turn, enpassant, castling);
     // Set to 0 so en passant capture on enpassant pawn is no longer available
     epPawn=0;
-    
-    bool enpassant=isEnpassant(org, tgt, turn);
-    bool castling=isCastling(org, tgt, turn);
     bool capture=(captured_piece&&!enpassant);
+    
     // Output move message
     messageOutput(origin, target, capture, enpassant, castling);
     // If no capture increment the moves_since_last_capture, else reset to zero
@@ -222,6 +227,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     turn = turn ? black : white;
     // Check/Checkmate/Stalemate
     if (isGameOver(turn)) {
+      endGame=true;
       if (checker) throw CHECKMATE;
       throw STALEMATE;
     }
@@ -255,7 +261,7 @@ int ChessBoard::submitMoveExceptions(int status, char const* origin,
     case INVALID_MOVE:
       cerr<<(turn ? "White's ":"Black's ");
       cerr<<positions[rIndexChar(origin)][fIndexChar(origin)]->name;
-      cerr<<" cannot move to "<<target<<'!'<<endl;
+      cerr<<" cannot move to "<<target[0]<<target[1]<<'!'<<endl;
       return status;
     case NOT_MOVING:
       cerr<<"A move must be made!"<<endl;
@@ -266,7 +272,7 @@ int ChessBoard::submitMoveExceptions(int status, char const* origin,
       cerr<<"1-8."<<endl;
       return status;
     case NO_PIECE_AT_POSITION:
-      cerr<<"There is no piece at position "<<origin<<'!'<<endl;
+      cerr<<"There is no piece at position "<<origin[0]<<origin[1]<<'!'<<endl;
       return status;
     case NOT_YOUR_TURN:
       cerr<<"It is not "<<(turn ? "Black's ": "White's ");
@@ -276,16 +282,24 @@ int ChessBoard::submitMoveExceptions(int status, char const* origin,
       cerr<<"Illegal move! ";
       cerr<<(turn ? "White's ":"Black's ");
       cerr<<positions[rIndexChar(origin)][fIndexChar(origin)]->name;
-      cerr<<" moving to "<<target<<" puts ";
+      cerr<<" moving to "<<target[0]<<target[1]<<" puts ";
       cerr<<(turn ? "White ":"Black ")<<"in check!"<<endl;
+      return status;
+    case ENOMEM:
+      cerr<<"ERROR! Cannot allocate pieces due to insufficient memory";
+      cerr<<", the game cannot proceed. "<<endl;
       return status;
     case STALEMATE:
       cout<<"\nStalemate! This game ended in a draw!"<<endl;
       return END_GAME;
-    default: // Checkmate
+    case CHECKMATE: // Checkmate
       cout<<(turn ? "White " : "Black ")<<"is in checkmate! ";
       cout<<(turn ? "Black " : "White ")<<"wins!"<<endl;
       return END_GAME;
+    default:
+      cout<<"The game has ended, no more moves can be made!"<<endl;
+      cout<<"Please reset the board..."<<endl;
+      return status;
   }
 }
 
@@ -345,9 +359,9 @@ bool ChessBoard::isCastling(int origin, int target, Team t) const {
       return false;
   }
   // Does the king cross or stop at a position that can be attacked
-  // legality doesn't matter, King cannot put itself in check
-  if (!canAttack(target, t?black:white)||
-      !canAttack(kings_cross, t?black:white)) return false;
+  // legality doesn't matter here, King cannot put itself in check
+  if (canAttack(target, t?black:white)||
+      canAttack(kings_cross, t?black:white)) return false;
   
   return true;
 }
@@ -360,7 +374,7 @@ bool ChessBoard::isEnpassant(int origin, int target, Team t) const {
   int const rank5_white = 4;
   int const rank5_black = 3;
   
-  // Capturing pawn on fifth rank
+  // Capturing pawn on its fifth rank
   if (Chesspiece::rIndex(origin) != (t ? rank5_white : rank5_black)) return false;
   
   // Captured pawn on adjacent file
@@ -382,39 +396,35 @@ void ChessBoard::promotePawn(char const* target) {
   if ((*positions[rIndexChar(target)][fIndexChar(target)]=="Pawn") &&
       target[1]==(turn ? '8' : '1')) {
     cout<<"Pawn promotion!"<<endl;
+    delete positions[rIndexChar(target)][fIndexChar(target)];
     char piece=target[2];
     switch (piece) {
       case 'N':
-        delete positions[rIndexChar(target)][fIndexChar(target)];
         positions[rIndexChar(target)][fIndexChar(target)] =
-        new (nothrow) Knight(turn?white:black);
-        checker= isCheck(turn?black:white);
+        new (nothrow) Knight(turn);
         break;
       case 'B':
-        delete positions[rIndexChar(target)][fIndexChar(target)];
         positions[rIndexChar(target)][fIndexChar(target)] =
-        new (nothrow) Bishop(turn?white:black);
-        checker= isCheck(turn?black:white);
+        new (nothrow) Bishop(turn);
         break;
       case 'R':
-        delete positions[rIndexChar(target)][fIndexChar(target)];
         positions[rIndexChar(target)][fIndexChar(target)] =
-        new (nothrow) Rook(turn?white:black);
-        checker= isCheck(turn?black:white);
+        new (nothrow) Rook(turn);
+        //Setting first move made to true to ensure castling is disabled
+        positions[rIndexChar(target)][fIndexChar(target)]->first_move_made=true;
         break;
       default:
-        delete positions[rIndexChar(target)][fIndexChar(target)];
         positions[rIndexChar(target)][fIndexChar(target)] =
-        new (nothrow) Queen(turn?white:black);
-        checker= isCheck(turn?black:white);
+        new (nothrow) Queen(turn);
         break;
     }
     if (!positions[rIndexChar(target)][fIndexChar(target)]) {
       cerr<<"ERROR! Insufficient memory"<<endl;
-      throw ENOMEM;
+      noMemory=true;
     }
+    checker= isCheck(turn?black:white);
     cout<<(turn ? "White's ":"Black's ");
-    cout<<"Pawn at "<<target<<" has been promoted to a ";
+    cout<<"Pawn at "<<target[0]<<target[1]<<" has been promoted to a ";
     cout>>*positions[rIndexChar(target)][fIndexChar(target)]<<'!'<<endl;
   }
   return;
@@ -448,6 +458,8 @@ void ChessBoard::resetBoard() {
   turns_since_last_capture=0;
   blackKing=pos_to_int("E8");
   whiteKing=pos_to_int("E1");
+  noMemory=false;
+  endGame=false;
   checker=0;
   epPawn=0;
   turn=white;
@@ -469,7 +481,7 @@ void ChessBoard::setupPieces() {
     positions[6][i]=new (nothrow) Pawn(black);
     if (!positions[1][i]||!positions[6][i]) {
       cerr<<"Insufficient memory"<<endl;
-      throw ENOMEM;
+      noMemory=true;
     }
   }
   
@@ -492,7 +504,7 @@ void ChessBoard::setupPieces() {
   for (int i=0; i<8; i++) {
     if (!positions[0][i]||!positions[7][i]) {
       cerr<<"Insufficient memory"<<endl;
-      throw ENOMEM;
+      noMemory=true;
     }
   }
   cout<<"A new chess game is started!"<<endl;
@@ -503,7 +515,9 @@ void ChessBoard::messageOutput(char const *origin, char const* target,
 const {
   cout<<(turn ? "White's " : "Black's ");
   cout>>*positions[rIndexChar(target)][fIndexChar(target)];
-  cout<<" moves from "<<origin<<" to "<<target;
+  /* Target elements are specifically called due to possible third character
+   during pawn promotion */
+  cout<<" moves from "<<origin<<" to "<<target[0]<<target[1];
   
   if (capture) {
     cout<<" taking "<<(turn ? "Black's " : "White's ");
