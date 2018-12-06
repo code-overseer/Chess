@@ -3,7 +3,7 @@
 using namespace std;
 
 Chesspiece::Chesspiece(Team t, char const* sym, char const* n) :
-team(t), symbol(sym), name(n) {
+symbol(sym), name(n), team(t) {
   for (int i=0; i<8; i++) {
     for (int j=0; j<8; j++) {
       num_at_position[i][j]=0;

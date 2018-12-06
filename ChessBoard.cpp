@@ -340,7 +340,7 @@ bool ChessBoard::isCastling(int origin, int target, Team t) const {
   
   // Empty path
   int dir = (Chesspiece::fIndex(target)+'A'=='G')?1:-1;
-  for (int i=1; i<(Chesspiece::fIndex(target)+'A'=='G')?3:4; i++) {
+  for (int i=1; i<((Chesspiece::fIndex(target)+'A'=='G')?3:4); i++) {
     if (positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)+i*dir])
       return false;
   }
