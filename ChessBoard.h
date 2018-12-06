@@ -38,11 +38,12 @@ private:
    enemy piece.
    * 6. The king does not end up in check. (True of any legal move.)
    
-   * Returns a boolean value, true if the move is possible and false otherwise
+   * Changes the caslting data member,
+   true if the move is possible and false otherwise
    
    * Note: This function inherently checks for legality
    */
-  bool isCastling(int origin, int target, Team t) const;
+  void isCastling(int origin, int target, Team t);
 
   /*
    isEnpassant(const char *origin, const char *target, Team t);
@@ -56,9 +57,10 @@ private:
    pawn makes the double-step move; otherwise, the right to capture it en
    passant is lost
    
-   * Returns a boolean value, true if the move is possible and false otherwise
+   * Changes the enpassant data member,
+   true if the move is possible and false otherwise
    */
-  bool isEnpassant(int origin, int target, Team t) const;
+  void isEnpassant(int origin, int target, Team t);
   
   /*
    canAttack(char const* target, Team t, bool pawn)
@@ -87,8 +89,7 @@ private:
    * Returns an integer value; the origin position is returned if the
    attack/movement is legal and 0 otherwise
    */
-  int isLegal(int origin, int target, Team t, bool &enpassant, bool &castling,
-              bool alwaysUndo=false);
+  int isLegal(int origin, int target, Team t, bool alwaysUndo=false);
   /*
    isLegal(int target, Team t)
    * Overloaded function to check if ANY piece in Team 't' can move to/attack a
@@ -138,7 +139,7 @@ private:
    
    * No return value
    */
-  void undo(int origin, int target, Team t, bool isEnpassant);
+  void undo(int origin, int target, Team t);
   /*
    promote_pawn(const char *target)
    
@@ -181,8 +182,7 @@ private:
    
    * No return value
    */
-  void messageOutput(char const *origin, char const *target,
-                     bool capture, bool enpassant, bool castling) const;
+  void messageOutput(char const *origin,char const *target,bool capture) const;
   
   /*
    drawNotification(int num, int flag);
@@ -253,6 +253,10 @@ private:
   bool endGame=false;
   /*No memory flag, prevents the game from starting or continuing*/
   bool noMemory=false;
+  /*Is the current move an enpassant capture?*/
+  bool enpassant=false;
+  /*Is the current move castling?*/
+  bool castling=false;
 public:
   /*
    submitMove(char const* org, char const* tgt)

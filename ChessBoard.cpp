@@ -88,14 +88,12 @@ int ChessBoard::canAttack(int target, Team t) const {
 
 int ChessBoard::isLegal(int target, Team t) {
   int origin=0;
-  bool castling=false;
-  bool enpassant=false;
   
   for (int r=0; r<8; r++) {
     for (int f=0; f<8; f++) {
       origin = index_to_int(f, r);
       try {
-        isLegal(origin,target,t, enpassant, castling, true);
+        isLegal(origin, target, t, true);
         return origin;
       } catch (int e) {
         continue;
@@ -105,8 +103,7 @@ int ChessBoard::isLegal(int target, Team t) {
   return false;
 }
 
-int ChessBoard::isLegal(int origin, int target, Team t, bool &enpassant,
-                        bool &castling, bool alwaysUndo) {
+int ChessBoard::isLegal(int origin, int target, Team t, bool alwaysUndo) {
   
   if (!positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]) {
     throw NO_PIECE_AT_POSITION;
@@ -114,8 +111,10 @@ int ChessBoard::isLegal(int origin, int target, Team t, bool &enpassant,
              [Chesspiece::fIndex(origin)]->team!=t) {
     throw NOT_YOUR_TURN;
   }
+  isEnpassant(origin, target, t);
+  isCastling(origin, target, t);
   // Making the move
-  if ((enpassant=isEnpassant(origin, target, t))){
+  if (enpassant) {
     // Captured piece is not deleted until the move is ensured to be legal
     captured_piece
     = positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)];
@@ -125,7 +124,7 @@ int ChessBoard::isLegal(int origin, int target, Team t, bool &enpassant,
     
     positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)]=nullptr;
     positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]=nullptr;
-  } else if ((castling=isCastling(origin, target, t))) {
+  } else if (castling) {
     // This move will always be legal
     // checkCastling has an internal legality check
     positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]
@@ -167,10 +166,10 @@ int ChessBoard::isLegal(int origin, int target, Team t, bool &enpassant,
   }
   // Cannot be in check after moving, if illegal, undo move
   if (isCheck(t)) {
-    undo(origin, target, t, enpassant);
+    undo(origin, target, t);
     throw ILLEGAL_MOVE;
   }
-  if (alwaysUndo) undo(origin, target, t, enpassant);
+  if (alwaysUndo) undo(origin, target, t);
   
   return origin;
 }
@@ -183,16 +182,14 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     int org = pos_to_int(origin);
     int tgt = pos_to_int(target);
     if (org==tgt) throw NOT_MOVING;
-    bool enpassant=false;
-    bool castling=false;
     
-    isLegal(org, tgt, turn, enpassant, castling);
+    isLegal(org, tgt, turn);
     // Set to 0 so en passant capture on enpassant pawn is no longer available
     epPawn=0;
     bool capture=(captured_piece&&!enpassant);
     
     // Output move message
-    messageOutput(origin, target, capture, enpassant, castling);
+    messageOutput(origin, target, capture);
     // If no capture increment the moves_since_last_capture, else reset to zero
     if (captured_piece) {
       delete captured_piece;
@@ -203,9 +200,8 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     }
     
     // If the move was not castling or enpassant, check for pawn promotion
-    if (!castling && !enpassant) {
-      promotePawn(target);
-    }
+    if (!castling && !enpassant) promotePawn(target);
+    
     checker = isCheck(turn ? black : white);
     
     // If the piece has been moved for the 1st time, set first_move_made to true
@@ -225,7 +221,10 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     }
     // End of turn
     turn = turn ? black : white;
+    enpassant=false;
+    castling=false;
     // Check/Checkmate/Stalemate
+    
     if (isGameOver(turn)) {
       endGame=true;
       if (checker) throw CHECKMATE;
@@ -319,11 +318,11 @@ bool ChessBoard::isGameOver(Team t) {
   return true; // Checkmate
 }
 
-bool ChessBoard::isCastling(int origin, int target, Team t) const {
+void ChessBoard::isCastling(int origin, int target, Team t) {
   if (origin != pos_to_int(t ? "E1": "E8") ||
       (target != pos_to_int(t ? "G1": "G8") &&
        target != pos_to_int(t ? "C1": "C8")))
-    return false;
+    return;
   
   int rook=0;
   int kings_cross=0;
@@ -340,34 +339,35 @@ bool ChessBoard::isCastling(int origin, int target, Team t) const {
   if (origin!=(t?whiteKing:blackKing)||
       !positions[Chesspiece::rIndex(rook)][Chesspiece::fIndex(rook)]||
       *positions[Chesspiece::rIndex(rook)][Chesspiece::fIndex(rook)]!="Rook")
-    return false;
+    return;
   
   // Has the first move been made for the King and Rook
   if (positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]
       ->first_move_made ||
       positions[Chesspiece::rIndex(rook)][Chesspiece::fIndex(rook)]
       ->first_move_made)
-    return false;
+    return;
   
   // King not in check
-  if (isCheck(t)) return false;
+  if (isCheck(t)) return;
   
   // Empty path
   int dir = (Chesspiece::fIndex(target)+'A'=='G')?1:-1;
   for (int i=1; i<((Chesspiece::fIndex(target)+'A'=='G')?3:4); i++) {
     if (positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)+i*dir])
-      return false;
+      return;
   }
   // Does the king cross or stop at a position that can be attacked
   // legality doesn't matter here, King cannot put itself in check
   if (canAttack(target, t?black:white)||
-      canAttack(kings_cross, t?black:white)) return false;
+      canAttack(kings_cross, t?black:white)) return;
   
-  return true;
+  castling=true;
+  return;
 }
 
-bool ChessBoard::isEnpassant(int origin, int target, Team t) const {
-  if (!epPawn) return false;
+void ChessBoard::isEnpassant(int origin, int target, Team t) {
+  if (!epPawn) return;
   
   // Captured pawn just moved two steps in its first turn
   int captured = epPawn;
@@ -375,21 +375,22 @@ bool ChessBoard::isEnpassant(int origin, int target, Team t) const {
   int const rank5_black = 3;
   
   // Capturing pawn on its fifth rank
-  if (Chesspiece::rIndex(origin) != (t ? rank5_white : rank5_black)) return false;
+  if (Chesspiece::rIndex(origin) != (t ? rank5_white : rank5_black)) return;
   
   // Captured pawn on adjacent file
   if (Chesspiece::rIndex(captured)!=Chesspiece::rIndex(origin) ||
       Chesspiece::fIndex(captured)!=Chesspiece::fIndex(target))
-    return false;
+    return;
   
   // Both pieces involved must be pawns
   if (*positions[Chesspiece::rIndex(origin)]
       [Chesspiece::fIndex(target)]!="Pawn" ||
       *positions[Chesspiece::rIndex(origin)]
       [Chesspiece::fIndex(origin)]!="Pawn")
-    return false;
+    return;
   
-  return true;
+  enpassant=true;
+  return;
 }
 
 void ChessBoard::promotePawn(char const* target) {
@@ -430,17 +431,18 @@ void ChessBoard::promotePawn(char const* target) {
   return;
 }
 
-void ChessBoard::undo(int origin, int target, Team t, bool isEnpassant) {
+void ChessBoard::undo(int origin, int target, Team t) {
   positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(origin)]
   = positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)];
   
-  if (isEnpassant) {
+  if (enpassant) {
     positions[Chesspiece::rIndex(target)][Chesspiece::fIndex(target)]=nullptr;
     
     positions[Chesspiece::rIndex(origin)][Chesspiece::fIndex(target)]
     = captured_piece;
     
     captured_piece = nullptr;
+    enpassant=false;
     return;
   }
   // Regular moves (Castling is always legal if checkCastling returns true)
@@ -460,6 +462,8 @@ void ChessBoard::resetBoard() {
   whiteKing=pos_to_int("E1");
   noMemory=false;
   endGame=false;
+  enpassant=false;
+  castling=false;
   checker=0;
   epPawn=0;
   turn=white;
@@ -511,7 +515,7 @@ void ChessBoard::setupPieces() {
 }
 
 void ChessBoard::messageOutput(char const *origin, char const* target,
-                               bool capture, bool enpassant, bool castling)
+                               bool capture)
 const {
   cout<<(turn ? "White's " : "Black's ");
   cout>>*positions[rIndexChar(target)][fIndexChar(target)];
