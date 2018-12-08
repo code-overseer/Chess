@@ -1,5 +1,4 @@
 #include "Queen.hpp"
-#include "ChessBoard.h"
 
 bool Queen::isvalid(int origin, int target, ChessBoard const* cb) const {
   

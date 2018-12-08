@@ -1,5 +1,4 @@
 #include "Knight.hpp"
-#include "ChessBoard.h"
 
 bool Knight::isvalid(int origin, int target, ChessBoard const* cb) const {
   if (!intCheck(target)||origin==target) return false;

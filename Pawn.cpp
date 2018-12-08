@@ -1,5 +1,4 @@
 #include "Pawn.hpp"
-#include "ChessBoard.h"
 
 bool Pawn::isvalid(int origin, int target, ChessBoard const* cb) const {
   if (!intCheck(target)||origin==target) return false;

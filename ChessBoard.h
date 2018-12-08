@@ -2,10 +2,8 @@
 #define ChessBoard_hpp
 
 #include "helper.hpp"
-#include "ChessPiece.hpp"
 
-int const THREEFOLD = 3;
-int const FIFTY = 50;
+class Chesspiece;
 
 class ChessBoard {
 private:
@@ -70,7 +68,7 @@ private:
    are checked
    
    * Returns an integer value representing the position of the first attacker
-   found, 0 otherwise
+   found, NULL_POS otherwise
    */
   int canAttack(int target, Team t) const;
   
@@ -81,15 +79,11 @@ private:
    * In this program legality is whether or not a move puts the King in check
    * This is done by moving the piece to the target and checking for legality
    with the isCheck function
-   * enpassant and castling are boolean values passed by reference to be
-   returned so that they may be used by the messageOutput function
    * alwaysUndo is a flag; set to true if any move made regardless of legality
    is to be undone, set to false if only illegal moves is to be undone
    
-   * Returns an integer value; the origin position is returned if the
-   attack/movement is legal and 0 otherwise
    */
-  int isLegal(int origin, int target, Team t, bool alwaysUndo=false);
+  void isLegal(int origin, int target, Team t, bool alwaysUndo=false);
   /*
    isLegal(int target, Team t)
    * Overloaded function to check if ANY piece in Team 't' can move to/attack a
@@ -98,9 +92,9 @@ private:
    every piece in Team t
    
    * Returns an integer value; the origin position is returned if the attack
-   is legal and possible and 0 otherwise
+   is legal and possible and NULL_POS otherwise
    
-   * Note: This function undos any movement after checking for legality
+   * Note: This function will undo any movement after checking for legality
    */
   int isLegal(int target, Team t);
   
@@ -134,7 +128,6 @@ private:
    * It moves the piece from the target back to the origin and retrieves the
    previous piece that was at the target from the captured_piece data member
    * Team t is used to specify the team that made the move to be undone
-   * isEnpassant is a boolean flag used to deal with the undoing of an en
    passant move where the capture position does not equal the resulting position
    
    * No return value
@@ -148,7 +141,7 @@ private:
    * Deletes the existing pawn piece and replaces it with promoted piece
    * This function will by default promote the pawn to a queen
    * To promote to a different piece, specify the piece's algerbraic notation
-   in upper case at the end of the target position for submit move:
+   in upper case at the end of the target position for submitMove:
    Example:
    cb->submitMove("B7", "C8N")
    Output:
@@ -202,37 +195,70 @@ private:
    pos_to_int(char const* pos) const;
    Convert the chess positions into the integer format:
    Example:
-   A1 -> 11;
-   D4 -> 44;
-   H7-> 87
+   A1 -> 0; (00)
+   D4 -> 33;
+   H7-> 76;
    */
-  int pos_to_int(char const* pos) const;
+  static int pos_to_int(char const* pos);
   /*
    Gets the corresponding row (rank) index for the positions array from chess
    positions
    Example:
-   B1 -> 21 -> rIndexChar("B1") = 1-1=0;
-   D4 -> 44 -> rIndexChar("D1") = 4-1=3;
-   H7 -> 87 -> rIndexChar("H7") = 7-1=6;
+   B1 -> 10 -> rIndex("B1") = 0;
+   D4 -> 33 -> rIndex("D1") = 3;
+   H7 -> 76 -> rIndex("H7") = 6;
    */
-  int rIndexChar(char const* position) const;
+  static int rIndex(char const* position);
   /*
    Gets the corresponding column (file) index for the positions array from chess
    positions
    Example:
-   B1 -> 21 -> fIndexChar("B1") = 2-1=1;
-   D4 -> 44 -> fIndexChar("D4") = 4-1=3;
-   H7 -> 87 -> fIndexChar("H7") = 8-1=7;
+   B1 -> 10 -> fIndex("B1") = 1;
+   D4 -> 33 -> fIndex("D4") = 3;
+   H7 -> 76 -> fIndex("H7") = 7;
    */
-  int fIndexChar(char const* position) const;
+  static int fIndex(char const* position);
   /*
    Gets the corresponding integer format for the array index input
    Example:
-   B1 -> fIndexChar("B1")=1, rIndexChar("B1")=0 -> index_to_int(1,0)=21;
-   D4 -> fIndexChar("D4")=3, rIndexChar("D1")=3 -> index_to_int(3,3)=44;
-   H7 -> fIndexChar("H7")=7, rIndexChar("H7")=6 -> index_to_int(7,6)=87;
+   B1 -> fIndex("B1")=1, rIndex("B1")=0 -> index_to_int(1,0)=10;
+   D4 -> fIndex("D4")=3, rIndex("D1")=3 -> index_to_int(3,3)=33;
+   H7 -> fIndex("H7")=7, rIndex("H7")=6 -> index_to_int(7,6)=76;
    */
-  int index_to_int(int file, int rank) const;
+  static int index_to_int(int file, int rank);
+  /*
+   int rIndex(int pos);
+   
+   Used by both the chessboard and chesspieces
+   Gets the corresponding row (rank) index for the positions array from integer f
+   ormat:
+   Example:
+   B1 -> 10 -> rIndex(10) = 0;
+   D4 -> 33 -> rIndex(33) = 3;
+   H7 -> 76 -> rIndex(76) = 6;
+   */
+  static int rIndex(int pos);
+  /*
+   fIndex(int pos);
+   
+   Used by both the chessboard and chesspieces
+   Gets the corresponding column (file) index for the positions array from integer
+   format
+   Example:
+   B1 -> 10 -> fIndex(10) = 1;
+   D4 -> 33 -> fIndex(33) = 3;
+   H7 -> 76 -> fIndex(76) = 7;
+   */
+  static int fIndex(int pos);
+  /*
+   inputCheck(int input);
+   
+   A function used to validate the input position in integer format;
+   Both rank and file must be between 0 and 7;
+   
+   Returns true if the format is correct and false otherwise
+   */
+  static bool intCheck(int input);
   
   /* Data members */
   /* Number of turns since last capture */
@@ -243,10 +269,12 @@ private:
   int whiteKing=pos_to_int("E1");
   /* Temporarily stores captured piece */
   Chesspiece* captured_piece=nullptr;
-  /* Position of a piece that can attack the King, 0 means no piece */
-  int checker=0;
+  /*Null position*/
+  static int const NULL_POS=-1;
+  /* Position of a piece that can attack the King */
+  int checker=NULL_POS;
   /* Position of a pawn that can be captured by en passant */
-  int epPawn=0;
+  int epPawn=NULL_POS;
   /* Whose turn is it */
   Team turn=white;
   /* Is it the end of game? */
@@ -257,6 +285,9 @@ private:
   bool enpassant=false;
   /*Is the current move castling?*/
   bool castling=false;
+  /* Draw rules */
+  static int const THREEFOLD = 3;
+  static int const FIFTY = 50;
 public:
   /*
    submitMove(char const* org, char const* tgt)
@@ -296,7 +327,7 @@ public:
   void resetBoard();
   ChessBoard();
   ~ChessBoard();
-  
+  friend Chesspiece;
   // Data members
   /*
    * An array of chesspiece pointers, points to nullptr if the position is
@@ -305,6 +336,7 @@ public:
    positions[rank][file]
    */
   std::array<std::array<Chesspiece*,8>,8> positions;
+  
 };
 
 #endif /* chessboard_hpp */

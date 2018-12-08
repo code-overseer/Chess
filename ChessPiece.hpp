@@ -1,42 +1,12 @@
 #ifndef chesspiece_hpp
 #define chesspiece_hpp
 
-#include "helper.hpp"
+#include "ChessBoard.h"
 
-class ChessBoard;
 /* Abstract Chesspiece class */
 
 class Chesspiece {
   protected:
-  /*
-   inputCheck(int input);
-   
-   A function used to validate the input position in integer format;
-   Both rank and file must be between 1 and 8;
-   
-   Returns true if the format is correct and false otherwise
-   */
-  static bool intCheck(int input);
-  /*
-   Used by both the chessboard and chesspieces
-   Gets the corresponding row (rank) index for the positions array from integer f
-   ormat:
-   Example:
-   B1 -> 21 -> rIndex(21) = 1 - 1=0;
-   D4 -> 44 -> rIndex(44) = 4 - 1=3;
-   H7 -> 87 -> rIndex(87) = 7 - 1=6;
-   */
-  static int rIndex(int pos);
-  /*
-   Used by both the chessboard and chesspieces
-   Gets the corresponding column (file) index for the positions array from integer
-   format
-   Example:
-   B1 -> 21 -> fIndex(21) = 2 - 1=1;
-   D4 -> 44 -> fIndex(44) = 4 - 1=3;
-   H7 -> 87 -> fIndex(87) = 8 - 1=7;
-   */
-  static int fIndex(int pos);
   /*
    pathCheck(int origin, int target, int direction);
    A function to check if the path from the origin to the target is clear of
@@ -45,7 +15,7 @@ class Chesspiece {
    Returns true if it is clear and false otherwise
    */
   bool pathCheck(int origin, int target, int direction,
-                 ChessBoard const* cb) const;
+ChessBoard const* cb) const;
   /*
    isDiagonal(int origin, int target);
    A function to check if the path from the origin to the target is a diagonal
@@ -86,6 +56,16 @@ class Chesspiece {
   char const* const symbol;
   /* Piece name */
   char const* const name;
+  /*Function pointer to ChessBoard::rIndex to retrieve the rank index from the
+   integer format*/
+  int (*rIndex)(int) = &ChessBoard::rIndex;
+  /*Function pointer to ChessBoard::fIndex to retrieve the file index from the
+   integer format*/
+  int (*fIndex)(int) = &ChessBoard::fIndex;
+  
+  /*Function pointer to ChessBoard::intCheck to check the validity of the
+   integer format*/
+  bool (*intCheck)(int) = &ChessBoard::intCheck;
   
 public:
   /* Constructor */
@@ -106,7 +86,7 @@ public:
   friend std::ostream& operator >>(std::ostream&, Chesspiece&);
   friend ChessBoard;
   // Data members
-  /* Piece colour, black or white */
+  /* Piece colour, black or white, subclasses need access to this */
   Team team;
 };
 

@@ -1,5 +1,4 @@
 #include "Bishop.hpp"
-#include "ChessBoard.h"
 
 bool Bishop::isvalid(int origin, int target, ChessBoard const* cb) const {
   if (!intCheck(target)||origin==target) return false;
