@@ -327,6 +327,7 @@ public:
   void resetBoard();
   ChessBoard();
   ~ChessBoard();
+  /* Give access to rIndex and fIndex */
   friend Chesspiece;
   // Data members
   /*
