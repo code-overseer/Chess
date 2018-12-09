@@ -86,14 +86,13 @@ int ChessBoard::canAttack(int target, Team t) const {
 
 int ChessBoard::isLegal(int target, Team t) {
   int origin=0;
-  
   for (int r=0; r<8; r++) {
     for (int f=0; f<8; f++) {
       origin = index_to_int(f, r);
       try {
         isLegal(origin, target, t, true);
         return origin;
-      } catch (int e) {
+      } catch (...) {
         continue;
       }
     }
@@ -221,8 +220,15 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
     
     if (isGameOver(turn)) {
       endGame=true;
-      if (checker!=NULL_POS) throw CHECKMATE;
-      throw STALEMATE;
+      if (checker!=NULL_POS) {
+        cout<<(turn ? "White " : "Black ")<<"is in checkmate! ";
+        cout<<(turn ? "Black " : "White ")<<"wins!"<<endl;
+        endGame=true;
+        return END_GAME;
+      }
+      cout<<"Stalemate! This game ended in a draw!"<<endl;
+      endGame=true;
+      return END_GAME;
     }
     // Check notification
     if (checker!=NULL_POS) {
@@ -238,6 +244,7 @@ int ChessBoard::submitMove(char const* origin, char const* target) {
       drawNotification(positions[rIndex(tgt)][fIndex(tgt)]
        ->num_at_position[rIndex(tgt)][fIndex(tgt)],THREEFOLD);
     }
+
     return NEXT_TURN;
   } catch (int status) {
     return submitMoveExceptions(status, origin, target);
@@ -250,15 +257,14 @@ int ChessBoard::submitMoveExceptions(int status, char const* origin,
     case INVALID_MOVE:
       cerr<<(turn ? "White's ":"Black's ");
       cerr<<positions[rIndex(origin)][fIndex(origin)]->name;
-      cerr<<" cannot move to "<<target[0]<<target[1]<<'!'<<endl;
+      cerr<<" cannot move to "<<target[0]<<target[1]<<"!"<<endl;
       return status;
     case NOT_MOVING:
       cerr<<"A move must be made!"<<endl;
     case INVALID_INPUT:
       cerr<<"Invalid input! ";
-      cerr<<"Input must be in the form A1, where the first character is an ";
-      cerr<<"upper case letter between A-H and the second character a digit ";
-      cerr<<"between 1-8."<<endl;
+      cerr<<"The first character is an upper case letter between A-H and the ";
+      cerr<<"second character a digit between 1-8."<<endl;
       return status;
     case NO_PIECE_AT_POSITION:
       cerr<<"There is no piece at position "<<origin[0]<<origin[1]<<'!'<<endl;
@@ -275,19 +281,12 @@ int ChessBoard::submitMoveExceptions(int status, char const* origin,
       cerr<<(turn ? "White ":"Black ")<<"in check!"<<endl;
       return status;
     case ENOMEM:
-      cerr<<"ERROR! Cannot allocate pieces due to insufficient memory";
+      cerr<<"ERROR! Bad allocation was caught previously";
       cerr<<", the game cannot proceed. "<<endl;
       return status;
-    case STALEMATE:
-      cout<<"\nStalemate! This game ended in a draw!"<<endl;
-      return END_GAME;
-    case CHECKMATE: // Checkmate
-      cout<<(turn ? "White " : "Black ")<<"is in checkmate! ";
-      cout<<(turn ? "Black " : "White ")<<"wins!"<<endl;
-      return END_GAME;
     default:
-      cout<<"The game has ended, no more moves can be made!"<<endl;
-      cout<<"Please reset the board..."<<endl;
+      cerr<<"The game has ended, no more moves can be made!\n";
+      cerr<<"Please reset the board..."<<endl;
       return status;
   }
 }
@@ -384,24 +383,25 @@ void ChessBoard::promotePawn(char const* target) {
       target[1]==(turn ? '8' : '1')) {
     cout<<"Pawn promotion!"<<endl;
     delete positions[rIndex(target)][fIndex(target)];
-    switch (target[2]) {
-      case 'N':
-        positions[rIndex(target)][fIndex(target)] = new (nothrow) Knight(turn);
-        break;
-      case 'B':
-        positions[rIndex(target)][fIndex(target)] = new (nothrow) Bishop(turn);
-        break;
-      case 'R':
-        positions[rIndex(target)][fIndex(target)] = new (nothrow) Rook(turn);
-        break;
-      default:
-        positions[rIndex(target)][fIndex(target)] = new (nothrow) Queen(turn);
-        break;
-    }
-    if (!positions[rIndex(target)][fIndex(target)]) {
-      cerr<<"ERROR! Insufficient memory"<<endl;
+    try {
+      switch (target[2]) {
+        case 'N':
+          positions[rIndex(target)][fIndex(target)] = new Knight(turn);
+          break;
+        case 'B':
+          positions[rIndex(target)][fIndex(target)] = new Bishop(turn);
+          break;
+        case 'R':
+          positions[rIndex(target)][fIndex(target)] = new Rook(turn);
+          break;
+        default:
+          positions[rIndex(target)][fIndex(target)] = new Queen(turn);
+          break;
+      }
+    } catch (bad_alloc& error) {
+      cerr<<"Error! "<<error.what()<<endl;
       noMemory=true;
-      throw ENOMEM;
+      return;
     }
     checker= isCheck(turn?black:white);
     cout<<(turn ? "White's ":"Black's ");
@@ -458,38 +458,31 @@ void ChessBoard::resetBoard() {
 }
 
 void ChessBoard::setupPieces() {
-  for (int i=0; i<8; i++) {
-    positions[1][i]=new (nothrow) Pawn(white);
-    positions[6][i]=new (nothrow) Pawn(black);
-    if (!positions[1][i]||!positions[6][i]) {
-      cerr<<"Insufficient memory"<<endl;
-      noMemory=true;
-      return;
+  try {
+    for (int i=0; i<8; i++) {
+      positions[1][i]=new Pawn(white);
+      positions[6][i]=new Pawn(black);
     }
-  }
-  
-  positions[0][0]=new (nothrow) Rook(white);
-  positions[0][1]=new (nothrow) Knight(white);
-  positions[0][2]=new (nothrow) Bishop(white);
-  positions[0][3]=new (nothrow) Queen(white);
-  positions[0][4]=new (nothrow) King(white);
-  positions[0][5]=new (nothrow) Bishop(white);
-  positions[0][6]=new (nothrow) Knight(white);
-  positions[0][7]=new (nothrow) Rook(white);
-  positions[7][0]=new (nothrow) Rook(black);
-  positions[7][1]=new (nothrow) Knight(black);
-  positions[7][2]=new (nothrow) Bishop(black);
-  positions[7][3]=new (nothrow) Queen(black);
-  positions[7][4]=new (nothrow) King(black);
-  positions[7][5]=new (nothrow) Bishop(black);
-  positions[7][6]=new (nothrow) Knight(black);
-  positions[7][7]=new (nothrow) Rook(black);
-  for (int i=0; i<8; i++) {
-    if (!positions[0][i]||!positions[7][i]) {
-      cerr<<"Insufficient memory"<<endl;
-      noMemory=true;
-      return;
-    }
+    positions[0][0]=new Rook(white);
+    positions[0][1]=new Knight(white);
+    positions[0][2]=new Bishop(white);
+    positions[0][3]=new Queen(white);
+    positions[0][4]=new King(white);
+    positions[0][5]=new Bishop(white);
+    positions[0][6]=new Knight(white);
+    positions[0][7]=new Rook(white);
+    positions[7][0]=new Rook(black);
+    positions[7][1]=new Knight(black);
+    positions[7][2]=new Bishop(black);
+    positions[7][3]=new Queen(black);
+    positions[7][4]=new King(black);
+    positions[7][5]=new Bishop(black);
+    positions[7][6]=new Knight(black);
+    positions[7][7]=new Rook(black);
+  } catch (bad_alloc& error) {
+    noMemory=true;
+    cerr<<"Error! "<<error.what()<<endl;
+    return;
   }
   cout<<"A new chess game is started!"<<endl;
 }

@@ -5,16 +5,14 @@
 #include <cstring>
 #include <array>
 
-#define CHECKMATE 1
+#define END_GAME 0
+#define NEXT_TURN 1
 #define INVALID_MOVE 2
 #define NOT_MOVING 3
 #define INVALID_INPUT 4
 #define NO_PIECE_AT_POSITION 5
 #define NOT_YOUR_TURN 6
 #define ILLEGAL_MOVE 7
-#define STALEMATE 8
-#define NEXT_TURN 9
-#define END_GAME 0
 
 /* Team */
 enum Team {black, white};
