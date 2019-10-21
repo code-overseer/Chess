@@ -1,0 +1,23 @@
+cb.submitMove("E2", "E3");
+cb.submitMove("E7", "E6");
+cb.submitMove("F1", "D3");
+cb.submitMove("F8", "D6");
+cb.submitMove("G1", "F3");
+cb.submitMove("G8", "F6");
+cb.submitMove("E1", "G1");
+cb.submitMove("E8", "G8");
+
+cb.resetBoard();
+
+cb.submitMove("E2", "E3");
+cb.submitMove("E7", "E6");
+cb.submitMove("D2", "D3");
+cb.submitMove("D7", "D6");
+cb.submitMove("B1", "C3");
+cb.submitMove("B8", "C6");
+cb.submitMove("D1", "E2");
+cb.submitMove("D8", "E7");
+cb.submitMove("C1", "D2");
+cb.submitMove("C8", "D7");
+cb.submitMove("E1", "C1");
+cb.submitMove("E8", "C8");

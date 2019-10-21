@@ -288,6 +288,12 @@ private:
   /* Draw rules */
   static int const THREEFOLD = 3;
   static int const FIFTY = 50;
+  /*
+   * An array of chesspiece pointers, points to nullptr if the position is
+   empty and points to a piece otherwise
+   * Rank is the first dimension and file is the second i.e.
+   positions[rank][file]
+   */
 public:
   /*
    submitMove(char const* org, char const* tgt)
@@ -329,15 +335,7 @@ public:
   ~ChessBoard();
   /* Give access to rIndex and fIndex */
   friend Chesspiece;
-  // Data members
-  /*
-   * An array of chesspiece pointers, points to nullptr if the position is
-   empty and points to a piece otherwise
-   * Rank is the first dimension and file is the second i.e.
-   positions[rank][file]
-   */
   std::array<std::array<Chesspiece*,8>,8> positions;
-  
 };
 
 #endif /* chessboard_hpp */

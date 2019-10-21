@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <string>
 #include <array>
 
 #define END_GAME 0
