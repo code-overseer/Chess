@@ -1,7 +1,7 @@
 #ifndef chesspiece_hpp
 #define chesspiece_hpp
 
-#include "ChessBoard.h"
+#include "ChessBoard.hpp"
 
 /* Abstract Chesspiece class */
 
@@ -48,10 +48,10 @@ ChessBoard const* cb) const;
   
   // Data members
   /* Boolean value, true if first move has been made */
-  bool first_move_made=0;
+  bool first_move_made = false;
   /* An array containing the number of times a piece has been at a
    particular position */
-  unsigned short num_at_position[8][8];
+  unsigned short num_at_position[8][8]{};
   /* Unicode Chess Characters */
   char const* const symbol;
   /* Piece name */
@@ -74,10 +74,10 @@ public:
   virtual ~Chesspiece();
   /* '==' Operator overload to compare the name of the piece to another
    character array */
-  bool operator==(char const* name) const;
+  bool operator==(char const* str) const;
   /* '!=' Operator overload to compare the name of the piece to another
    character array */
-  bool operator!=(char const* name) const;
+  bool operator!=(char const* str) const;
   /* cout<<Operator overload to write the unicode symbol of the piece to the
    ostream */
   friend std::ostream& operator <<(std::ostream&, Chesspiece&);

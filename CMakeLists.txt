@@ -6,19 +6,22 @@ INCLUDE_DIRECTORIES(include)
 
 add_executable(TripleTriad
         main.cpp
-        include/Knight.h
-        include/Bishop.h
-        include/Rook.h
-        include/Queen.h
-        include/King.h
-        include/helper.h
-        include/ChessBoard.h
-        include/ChessPiece.h
+        include/Knight.hpp
+        include/Bishop.hpp
+        include/Rook.hpp
+        include/Pawn.hpp
+        include/Queen.hpp
+        include/King.hpp
+        include/helper.hpp
+        include/ChessBoard.hpp
+        include/Chesspiece.hpp
+        include/Tests.hpp
         src/Knight.cpp
         src/Bishop.cpp
-        src/Position.cpp
         src/Rook.cpp
+        src/Pawn.cpp
         src/Queen.cpp
         src/King.cpp
         src/ChessBoard.cpp
-        src/ChessPiece.cpp)
+        src/Chesspiece.cpp
+        tests/Tests.cpp)

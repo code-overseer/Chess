@@ -1,20 +1,18 @@
-#include "ChessBoard.h"
-#include "ChessPiece.hpp"
+#include "ChessBoard.hpp"
+#include "Chesspiece.hpp"
 
 using namespace std;
 
 Chesspiece::Chesspiece(Team t, char const* sym, char const* n) :
-symbol(sym), name(n), team(t) {
-  for (int i=0; i<8; i++) {
-    for (int j=0; j<8; j++) {
-      num_at_position[i][j]=0;
+symbol(sym), name(n), team(t), num_at_position() {
+  for (auto & i : num_at_position) {
+    for (unsigned short & j : i) {
+      j=0;
     }
   }
 }
 
-Chesspiece::~Chesspiece() {
-  return;
-}
+Chesspiece::~Chesspiece() = default;
 
 bool Chesspiece::pathCheck(int origin, int target, int direction,
                            ChessBoard const* cb) const {
@@ -71,10 +69,10 @@ std::ostream& operator >>(std::ostream& o, Chesspiece& cp) {
   return o << cp.name;
 }
 
-bool Chesspiece::operator==(char const* name) const {
-  return (!strcmp(this->name,name));
+bool Chesspiece::operator==(char const* str) const {
+  return !strcmp(this->name, str);
 }
 
-bool Chesspiece::operator!=(char const* name) const {
-  return !(!strcmp(this->name,name));
+bool Chesspiece::operator!=(char const* str) const {
+  return strcmp(this->name, str) != 0;
 }
